@@ -1,11 +1,23 @@
 % M5Stack custom Arduino Add-On
+% By: Eric Prandovszky, Copyright 2024
+% Contact: prandov@yorku.ca
+% Version 0.1
+% March 25, 2024
 % This .m file helps your MATLAB code interact with the c++ header file uploaded to the arduino.
-%% Create MATLAB Wrapper
+% The example DHT22 Add-On Library for Arduino by the MathWorks MATLAB Hardware Team is used as a template for this. 
+% Resources:
+% Create Custom Arduino Add-On Library: https://www.mathworks.com/help/matlab/supportpkg/create-custom-arduino-add-on-library.html
+% Video DHT22 Custom Arduino Add-On Library: https://www.mathworks.com/videos/create-a-custom-arduino-add-on-library-1566797080965.html
+% Create HelloWorld Add-On: https://www.mathworks.com/help/matlab/supportpkg/create-code-to-write-a-string.html
+% Create LCD Add-on: https://www.mathworks.com/help/matlab/supportpkg/add-lcd-library.html
+
+%% Step 3. Create and Configure MATLAB Add-On Class
 %The MATLAB add-on wrapper class that defines your library must inherit from matlabshared.addon.LibraryBase. 
 % The "matlabshared.addon.LibraryBase" class defines several constant properties that you must override in your MATLAB class. 
 % The class also contains internal utility functions that enable you to send and retrieve data from the server running on the Arduino board.
 % You can access the library files from 'CreateFolderStructureExample/SDKExampleHelloWorld' folder downloaded in Create Folder Structure.
 %Create a MATLAB class, and define the command ID for each command that is sent to the server on the board.
+
 classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDisplay
     % Create an DHT22 addon device object, which is connected to a specified pin on the Arduino hardware
     % sensor = addon(a,'Adafruit/DHT22', pin) creates a DHT22 device object.
