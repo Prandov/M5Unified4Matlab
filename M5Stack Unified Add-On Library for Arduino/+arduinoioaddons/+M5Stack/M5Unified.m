@@ -2,7 +2,7 @@
 % By: Eric Prandovszky, Copyright 2024
 % Contact: prandov@yorku.ca
 % Version 0.1
-% March 25, 2024
+% Developed between March 25, 2024 to April 13, 2024
 % This .m file helps your MATLAB code interact with the c++ header file uploaded to the arduino.
 % The example DHT22 Add-On Library for Arduino by the MathWorks MATLAB Hardware Team is used as a template for this. 
 % Resources:
