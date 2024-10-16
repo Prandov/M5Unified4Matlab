@@ -27,10 +27,10 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         %DELETE_DHT22              = hex2dec('02')
         %READ_TEMPERATURE_DHT22    = hex2dec('03')
         %READ_HUMIDITY_DHT22       = hex2dec('04')
-        M5Begin                   = hex2dec('01')
-        M5LcdBegin            = hex2dec('02')
-        M5LcdPrt              = hex2dec('21') 
-        M5LcdPrtLn            = hex2dec('22') 
+        M5Begin                 = hex2dec('01')
+        M5LcdBegin              = hex2dec('20')
+        M5LcdPrt                = hex2dec('31') 
+        M5LcdPrtLn              = hex2dec('32') 
 
     end
     %Override constant properties in the class to specify the location of source header files.   
@@ -259,6 +259,11 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
          % M5.Display.setFont(&fonts::Font2);
          % M5.Display.setCursor(16, 16 + i * 24);  
          % M5.Display.setCursor(0,0);
+        function lcdPrintHW(obj)
+            cmdID = 0x30; 
+            dataIn = 0x00; 
+            sendCommand(obj,obj.LibraryName,cmdID,dataIn); 
+        end
         function lcdPrint(obj, string)
             cmdID = 0x31; 
             sendCommand(obj,obj.LibraryName,cmdID,uint8(string)); 
@@ -267,39 +272,13 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             cmdID = 0x32; 
             sendCommand(obj,obj.LibraryName,cmdID,uint8(string)); 
         end
-        function lcdDrawStr(obj,string) % M5.Display.drawString(x, y, text, color, size)
 
-        % MATLAB AI:
-        % Encode multiple values into a byte array
-        x = 10;
-        y = 20;
-        text = 'Hello';
-        color = [255, 0, 0];
-        size = 12;
-        
-        % Convert values to byte arrays
-        xBytes = typecast(int32(x), 'uint8');
-        yBytes = typecast(int32(y), 'uint8');
-        textBytes = uint8(text);
-        colorBytes = uint8(color);
-        sizeBytes = typecast(int32(size), 'uint8');
-        
-        % Concatenate byte arrays
-        byteArray = [xBytes; yBytes; textBytes(:); colorBytes(:); sizeBytes];
-        
-        %%%
-        
-        % Decode the byte array to retrieve the individual values
-        x = typecast(byteArray(1:4), 'int32');
-        y = typecast(byteArray(5:8), 'int32');
-        textLength = byteArray(9);
-        text = char(byteArray(10:10+textLength-1)');
-        color = reshape(typecast(byteArray(10+textLength:18+textLength), 'uint8'), 3, []);
-        size = typecast(byteArray(19+textLength:22+textLength), 'int32');
-
-%%%
+        function lcdDrawStr(obj,x,y,string) %Font and Colour Not Working
+            xybytes = typecast(swapbytes([uint16(x), uint16(y)]),'uint8');
+            text = uint8(char(string));
+            xytextData = [xybytes,text];
             cmdID = 0x33;
-            sendCommand(obj,obj.LibraryName,cmdID,uint8(string)); 
+            sendCommand(obj,obj.LibraryName,cmdID,xytextData);
         end
 	
         function lcdTextColor(obj,varargin)
@@ -405,21 +384,10 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
          % M5.Display.drawBmpUrl("http://example.com/url.bmp", 0, 0);
          % M5.Display.drawPngUrl("http://example.com/url.png", 0, 0);
 
-
-        
-        function getDisplayCount(obj)
-            cmdID = obj.M5getDisplayCount;
-            % [dataOut, payloadSize] = sendCommand(obj, libName, commandID, dataIn, timeout)
-            dataIn = 0x00;
-            [numDisplays, payloadSize] = sendCommand(obj,obj.LibraryName,cmdID,dataIn);
-        end  
-        
-     
-
         function displayJPG(obj) %NOT WORKING
             % display.drawJpg(jpg_image, ~0u, 0, 0, display.width(), display.height(), 0, 0, 0.0f, -1.0f);
             % drawJpg(const uint8_t *jpg_data, size_t jpg_len, uint16_t x = 0, uint16_t y = 0, uint16_t maxWidth = 0, uint16_t maxHeight = 0, uint16_t offX = 0, uint16_t offY = 0, jpeg_div_t scale = JPEG_DIV_NONE);
-            cmdID = obj.M5DisplayJPG;
+            cmdID = 0x49;
             imData = uint8(fileread('yorku-logo.jpg'));
             sendCommand(obj,obj.LibraryName,cmdID,imData);
 
