@@ -3,11 +3,11 @@
  *
  * Class definition for M5Stack class that wraps APIs of the M5Unified library.
  * https://github.com/m5stack/M5Unified. Based on the example DHT22 add-on library.
- * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast, 
- * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com 
+ * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast
+ * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com
  * Contact: prandov@yorku.ca, greatlebari@gmail.com
- * Version: 0.4.6
- * Date: Oct 22, 2024
+ * Version: 0.4.7
+ * Date: Oct 27, 2024
  * This .h file interacts with the M5Unified.m class in MATLAB.
  */
 
@@ -96,7 +96,7 @@ is available through the m5 namespace and includes the following:
 // LCD Images
 #define M5LcdDrawBmp            0x48
 #define M5LcdDrawJpg            0x49
-//IMU       0x50    
+//IMU       0x50    //29 functions
 //Log       0x60
 //Power     0x70 //20 functions
 #define M5PwrBegin              0x70    //1
@@ -119,8 +119,8 @@ is available through the m5 namespace and includes the following:
 #define M5PwrGetKeyState        0x7D    //18
 #define M5PwrSetVibration       0x7E    //19
 #define M5PwrGetType            0x7F    //20
-//RTC       0x80
-// Touch Commands 0x90 //27 functions
+//RTC       0x80 //14 functions
+//Touch     0x90 //27 functions
 #define M5TouchBegin            0x90
 #define M5TouchGetCount         0x91
 #define M5TouchGetDetail        0x92
@@ -149,7 +149,7 @@ is available through the m5 namespace and includes the following:
 #define MicSetSampleRate        0xC6
 #define MicRecord               0xC7
 #define MicSetGain              0xC8
-// pSRAM Commands 0xD0
+// pSRAM    0xD0
 #define M5PsramBegin            0xD0
 #define M5PsramWriteByte        0xD1
 #define M5PsramReadByte         0xD2
@@ -310,11 +310,14 @@ public:
         M5.Display.setTextSize(2);
         M5.Display.println("<- Power Off (Hold 5s)");
         M5.Display.setCursor(0, 50);
-        M5.Display.setTextSize(1);
-        M5.Display.println("MATLAB Support Package for Arduino Hardware");
-        M5.Display.println("with M5Unified Add-On Library for Arduino");
+        M5.Display.setTextSize(1.5);
+        M5.Display.println("MATLAB Support Package for Arduino");
+        M5.Display.println("using the: M5Unified Add-On Library");
         M5.Display.print("IO Server Version: ");
         M5.Display.println(BOARD_IO_VERSION);
+        M5.Display.print("Libraries: ");
+        M5.Display.println(LIBNAMES);
+        
     }
 public:
     void loop() {
@@ -1162,7 +1165,37 @@ display.setTextSize(2);
 // $$$$$$\ $$ | \_/ $$ |\$$$$$$  |
 // \______|\__|     \__| \______/ 
 //---------------------------------------------------------------------------------------------------------------------
-
+/*
+1.  begin()
+2.  update()
+3.  getAccel(float* ax, float* ay, float* az)
+4.  getGyro(float* gx, float* gy, float* gz)
+5.  getMag(float* mx, float* my, float* mz)
+6.  getTemp(float* temp)
+7.  getAccelAdc(int16_t* ax, int16_t* ay, int16_t* az)
+8.  getGyroAdc(int16_t* gx, int16_t* gy, int16_t* gz)
+9.  getMagAdc(int16_t* mx, int16_t* my, int16_t* mz)
+10. getAccelData(float* ax, float* ay, float* az)
+11. getGyroData(float* gx, float* gy, float* gz)
+12. getMagData(float* mx, float* my, float* mz)
+13. getTempData(float* temp)
+14. getAccelOffset(float* ax, float* ay, float* az)
+15. getGyroOffset(float* gx, float* gy, float* gz)
+16. getMagOffset(float* mx, float* my, float* mz)
+17. setAccelOffset(float ax, float ay, float az)
+18. setGyroOffset(float gx, float gy, float gz)
+19. setMagOffset(float mx, float my, float mz)
+20. getAccelScale(float* ax, float* ay, float* az)
+21. getGyroScale(float* gx, float* gy, float* gz)
+22. getMagScale(float* mx, float* my, float* mz)
+23. setAccelScale(float ax, float ay, float az)
+24. setGyroScale(float gx, float gy, float gz)
+25. setMagScale(float mx, float my, float mz)
+26. getType()
+27. getOffsetData(int index)
+28. loadOffsetFromNVS()
+29. saveOffsetToNVS()
+*/
 
 //---------------------------------------------------------------------------------------------------------------------
 //  $$$$$$$$\  $$$$$$\  $$\   $$\  $$$$$$\  $$\   $$\ 
@@ -1269,7 +1302,22 @@ display.setTextSize(2);
 // $$ |  $$ |  $$ |   \$$$$$$  |
 // \__|  \__|  \__|    \______/ 
 //---------------------------------------------------------------------------------------------------------------------
-
+/*
+1. begin(I2C_Class i2c)*
+2. getVoltLow()
+3. getDateTime(rtc_datetime_t datetime) const*
+4. getTime(rtc_time_t time) const*
+5. setTime(const rtc_time_t& time)
+6. getDate(rtc_date_t date) const*
+7. setDate(const rtc_date_t& date)
+8. setAlarmIRQ(int afterSeconds)
+9. setAlarmIRQ(const rtc_time_t& time)
+10. setAlarmIRQ(const rtc_date_t& date, const rtc_time_t& time)
+11. getIRQstatus()
+12. clearIRQ()
+13. disableIRQ()
+14. setSystemTimeFromRtc(struct timezone tz)*
+*/
 //---------------------------------------------------------------------------------------------------------------------                /*
 //  $$$$$$$\   $$$$$$\  $$\      $$\ $$$$$$$$\ $$$$$$$\  
 //  $$  __$$\ $$  __$$\ $$ | $\  $$ |$$  _____|$$  __$$\ 
@@ -1326,12 +1374,14 @@ display.setTextSize(2);
                 }
                 // case M5PowerOff //7
                 case M5PwrOff: {
-                    // Power off the device
-                    M5.Power.powerOff();
                     // Print debug string
                     debugPrint(MSG_M5PwrOff);
                     // Send response
                     sendResponseMsg(cmdID, 0, 0);
+                    // Wait
+                    M5.delay(500);
+                    // Power off the device
+                    M5.Power.powerOff();
                     break;
                 }             
                 // Case getBatteryLevel //11
