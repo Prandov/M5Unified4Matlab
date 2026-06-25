@@ -6,7 +6,7 @@
  * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast
  * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com
  * Contact: prandov@yorku.ca, greatlebari@gmail.com
- * Version: 0.4.9
+ * Version: 0.4.9.1
  * Date: Nov 4, 2024
  * This .h file interacts with the M5Unified.m class in MATLAB.
  */
