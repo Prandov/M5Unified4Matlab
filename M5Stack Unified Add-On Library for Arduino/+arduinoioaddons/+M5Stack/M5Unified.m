@@ -1,10 +1,10 @@
-%% Custom Arduino Add-On Library for the M5Stack M5Unified Library
+﻿%% Custom Arduino Add-On Library for the M5Unified Library by M5Stack
 % ==================================================================================================
 % M5Unified class
-% By: Eric Prandovszky
-% prandov@yorku.ca
-% Version 0.3
-% Sept 26 2024
+% Copyright 2024, Eric Prandovszky, Greatlove Bariboloka 
+% Contact: prandov@yorku.ca, greatlebari@gmail.com
+% Version: 0.4
+% Sept 30, 2024
 % This .m file interacts with the M5UnifiedML.h C header file uploaded to an M5Stack device.
 % ==================================================================================================
 
@@ -48,9 +48,9 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         M5Begin               = 0x01
         % LCD 0x20 to 0x4F
         M5LcdBegin            = 0x20
-        M5LcdClear            = 0x21
-        M5LcdPrt              = 0x31 
-        M5LcdPrtLn            = 0x32 
+        M5LcdClear            = 0x23
+        M5LcdPrt              = 0x2E 
+        M5LcdPrtLn            = 0x2F 
         % IMU       0x50    
         % Log       0x60
         % Power     0x70 //20 functions
@@ -761,3 +761,4 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         end
     end %of Public Methods
 end %of M5Unified Class
+

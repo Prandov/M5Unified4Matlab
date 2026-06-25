@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file M5UnifiedML.h
  *
  * Class definition for M5Stack class that wraps APIs of the M5Unified library
@@ -6,7 +6,7 @@
  *
  * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast, 
  *
- * @copyright Copyright 2024 Eric Prandovszky prandov@yorku.ca
+ * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com 
  *
  */
 /*
@@ -14,10 +14,10 @@ The M5 Unified library provides access to the built-in hardware of M5Stack contr
 is available through the m5 namespace and includes the following:
     0: Begin
     1: LCD display access, fonts, and graphical primitives: This is done in conjunction with M5GFX.
-    2: Touchscreen and hardware button access: This allows you to interact with the device’s touchscreen and hardware buttons.
-    3: Speaker and microphone access: This gives you control over the device’s speaker and microphone.
-    4: Power and battery charging control: This lets you manage the device’s power and battery charging.
-    5: IMU: This provides access to the device’s inertial measurement unit: accelerometer, gyroscope, and magnetometer.
+    2: Touchscreen and hardware button access: This allows you to interact with the deviceâ€™s touchscreen and hardware buttons.
+    3: Speaker and microphone access: This gives you control over the deviceâ€™s speaker and microphone.
+    4: Power and battery charging control: This lets you manage the deviceâ€™s power and battery charging.
+    5: IMU: This provides access to the deviceâ€™s inertial measurement unit: accelerometer, gyroscope, and magnetometer.
 */
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #include "LibraryBase.h"
@@ -324,7 +324,7 @@ public:
                 cfg.internal_mic  = true;  // default=true. use internal microphone.
                 cfg.external_imu  = false;  // default=false. use Unit Accel & Gyro.
                 cfg.external_rtc  = false;  // default=false. use Unit RTC.
-                cfg.led_brightness = 64;   // default= 0. system LED brightness (0=off / 255=max) (※ not NeoPixel)
+                cfg.led_brightness = 64;   // default= 0. system LED brightness (0=off / 255=max) (â€» not NeoPixel)
 
                 M5.begin(cfg);                        // initialize M5 device
             */
@@ -1683,3 +1683,4 @@ case MicRecord: {
         }
     }
 };
+
