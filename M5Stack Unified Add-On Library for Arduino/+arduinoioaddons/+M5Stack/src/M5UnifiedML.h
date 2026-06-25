@@ -6,8 +6,8 @@
  * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast
  * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com
  * Contact: prandov@yorku.ca, greatlebari@gmail.com
- * Version: 0.4.7
- * Date: Oct 27, 2024
+ * Version: 0.4.8
+ * Date: Oct 24, 2024
  * This .h file interacts with the M5Unified.m class in MATLAB.
  */
 
@@ -31,7 +31,7 @@ is available through the m5 namespace and includes the following:
 //  .##..##..##...##..##..##............##....##..##..............##.
 //  ..####...##...##..#####...........######..#####............####..
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// Main Commands 0x00
+// Main Commands 0x00 to 0x1f
 #define M5Begin             0x01
 #define M5BoardType         0x02
 #define getMemoryStatus     0x03
@@ -96,8 +96,17 @@ is available through the m5 namespace and includes the following:
 // LCD Images
 #define M5LcdDrawBmp            0x48
 #define M5LcdDrawJpg            0x49
-//IMU       0x50    //29 functions
+#define M5LcdDrawPng            0x50
+//IMU       0x50  //29 functions
 //Log       0x60
+#define M5LogSetLevel           0x60
+#define M5LogGetLevel           0x61
+#define M5LogSetEnableColor     0x62
+#define M5LogGetEnableColor     0x63
+#define M5LogSetSuffix          0x64
+#define M5LogSetCallback        0x66 
+#define M5LogSetDisplay         0x66
+#define M5LogDump               0x67
 //Power     0x70 //20 functions
 #define M5PwrBegin              0x70    //1
 #define M5PwrSetExtPwr          0x71    //2
@@ -196,8 +205,6 @@ const char MSG_M5LcdDrawPixel[]     PROGMEM = "M5 Display: Draw Pixel\n";
 const char MSG_M5LcdDrawLine[]      PROGMEM = "M5 Display: Draw Line\n";
 const char MSG_M5LcdDrawRect[]      PROGMEM = "M5 Display: Draw Rect\n";
 const char MSG_M5LcdFillRect[]      PROGMEM = "M5 Display: Fill Rect\n";
-const char MSG_M5LcdDrawJpg[]       PROGMEM = "M5 Display .jpg'\n";
-const char MSG_M5LcdDrawBmp[]       PROGMEM = "M5 Display .bmp'\n";
 const char MSG_M5LcdDrawCircle[]    PROGMEM = "M5 Display: Draw Circle\n";
 const char MSG_M5LcdFillCircle[]    PROGMEM = "M5 Display: Fill Circle\n";
 const char MSG_M5LcdDrawTriangle[]  PROGMEM = "M5 Display: Draw Triangle\n";
@@ -211,7 +218,10 @@ const char MSG_M5LcdFillRoundRect[] PROGMEM = "M5 Display: Fill Round Rect\n";
 const char MSG_M5LcdDrawFastHLine[] PROGMEM = "M5 Display: Draw Fast HLine\n";
 const char MSG_M5LcdDrawFastVLine[] PROGMEM = "M5 Display: Draw Fast VLine\n";
 const char MSG_M5LcdAllocateMem[]   PROGMEM = "M5 Display: Allocate Memory\n";
-const char MSG_M5DisplayJPG[]       PROGMEM = "M5 Display .jpg'\n";
+//LCD Images
+const char MSG_M5LcdDrawJPG[]       PROGMEM = "M5 Display .jpg\n";
+const char MSG_M5LcdDrawPNG[]       PROGMEM = "M5 Display .png\n";
+const char MSG_M5LcdDrawBmp[]       PROGMEM = "M5 Display .bmp\n";
 //Touch
 const char MSG_M5TouchBegin[]       PROGMEM = "M5 Touch Begin\n";
 const char MSG_M5TouchGetCount[]    PROGMEM = "M5 Touch Get Count\n";
@@ -263,7 +273,7 @@ const char MSG_M5PwrGetKeyState[]   PROGMEM = "M5 Power Get Key State\n";
 const char MSG_M5PwrSetVibration[]  PROGMEM = "M5 Power Set Vibration\n";
 const char MSG_M5PwrGetType[]       PROGMEM = "M5 Power Get Type\n";
 //Default
-const char MSG_M5UNKNOWN_CMD[]        PROGMEM = "M5[%d]->Unknown Command\n";
+const char MSG_M5UNKNOWN_CMD[]      PROGMEM = "M5[%d]->Unknown Command\n";
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //Speaker Variables
@@ -279,10 +289,13 @@ static int16_t prev_h[record_length];
 static size_t rec_record_idx = 2;
 static size_t draw_record_idx = 0;
 static int16_t *rec_data;
- 
+//PSRAM testing
+int n_elements = 1000;
+unsigned char * acc_data_all;
 
-// Global variable to store image data
-std::vector<uint8_t> imageData; 
+// Global variables to store image data
+    byte* pngData;
+    std::vector<uint8_t> imageData; 
 
 // Saves floating point number and byte array in same memory location
 typedef union{
@@ -317,6 +330,15 @@ public:
         M5.Display.println(BOARD_IO_VERSION);
         M5.Display.print("Libraries: ");
         M5.Display.println(LIBNAMES);
+        //Allocate for a PNG 
+            pngData = (byte*)malloc(720);
+        //Try to get PSRAM working
+        acc_data_all = (unsigned char *) ps_malloc (n_elements * sizeof (unsigned char)); 
+        if(psramInit()){
+        M5.Display.println("\nPSRAM is correctly initialized");
+        }else{
+        M5.Display.println("PSRAM not available");
+        }
         
     }
 public:
@@ -1148,13 +1170,23 @@ display.setTextSize(2);
                 // Draw the JPG image
                 M5.Display.drawJpg(dataIn, dataInSize, x, y, maxWidth, maxHeight, offX, offY, scale);
                 // Print debug string
-                debugPrint(MSG_M5DisplayJPG);
+                debugPrint(MSG_M5LcdDrawJPG);
                 // Send response
                 sendResponseMsg(cmdID, 0, 0);
                 break;
 
-
             }
+            case M5LcdDrawPng: {
+                pngData = dataIn;
+                // Draw the PNG image
+                M5.Display.drawPng(pngData, payload_size, 130, 50);
+                  // Print debug string
+                debugPrint(MSG_M5LcdDrawPNG);
+                // Send response
+                sendResponseMsg(cmdID, 0, 0);
+                break;
+            }
+
 //----------------------------------------------------------------------------------------------------------------------
 // $$$$$$\ $$\      $$\ $$\   $$\ 
 // \_$$  _|$$$\    $$$ |$$ |  $$ |

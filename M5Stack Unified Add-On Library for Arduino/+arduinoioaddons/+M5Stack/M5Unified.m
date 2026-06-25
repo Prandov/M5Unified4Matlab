@@ -3,8 +3,8 @@
 % M5Unified class
 % Copyright 2024, Eric Prandovszky, Greatlove Bariboloka 
 % Contact: prandov@yorku.ca, greatlebari@gmail.com
-% Version: 0.4.7
-% Date: Oct 23, 2024
+% Version: 0.4.8
+% Date: Oct 24, 2024
 % This .m file interacts with the M5UnifiedML.h C header file uploaded to an M5Stack device.
 % ==================================================================================================
 
@@ -43,29 +43,112 @@
 classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDisplay
     % M5Unified Summary of M5Unified
 
-    properties(Access = private, Constant = true)
+    properties(Access = private, Constant = true, Hidden = true)
     % Command ID's
-
-        M5Begin               = 0x01
-
-        % LCD 0x20 to 0x4F
-        
-        M5LcdBegin            = 0x20
-        M5LcdClear            = 0x23
-        M5LcdPrt              = 0x2E 
-        M5LcdPrtLn            = 0x2F 
-        
-        % IMU       0x50    %TODO
-        % Log       0x60    %TODO
-        % Power     0x70 //20 functions
-        % RTC       0x80    %TODO
-        % Touch     0x90    %TODO
-        % Button    0xA0
-        % Speaker   0xB0
-        % Mic       0xC0    %TODO
-        % pSRAM     0xD0    %TODO
-        % SD        0xE0    %TODO
-        % For now, most command ID's are set within their function.
+    % Main Commands 0x00 to 0x1f
+        M5Begin                 = 0x01    %1
+        M5BoardType             = 0x02    %2
+        M5GetMemoryStatus       = 0x03    %3
+        M5Delay                 = 0x04    %4
+    % LCD Display Commands 0x20 to 0x4F   
+    % LCD Control [14]
+        M5LcdBegin              = 0x20    %1
+        M5LcdStartWrite         = 0x21    %2
+        M5LcdEndWrite           = 0x22    %3
+        M5LcdClear              = 0x23    %4
+        M5LcdDisplay            = 0x24    %5
+        M5LcdgetHeight          = 0x25    %6
+        M5LcdgetWidth           = 0x26    %7
+        M5LcdgetDispCount       = 0x27    %8
+        M5LcdgetRotation        = 0x28    %9
+        M5LcdsetRotation        = 0x29    %10
+        M5LcdsetBrightness      = 0x2A    %11
+        M5LcdsetColorDepth      = 0x2B    %12
+        M5LcdAllocateMem        = 0x2C    %13
+        M5LcdFreeMem            = 0x2D    %14
+    % LCD Text      [8]
+        M5LcdPrint              = 0x2E    %1
+        M5LcdPrintLn            = 0x2F    %2
+        M5LcdDrawString         = 0x30    %3
+        M5LcdTextColor          = 0x31    %4
+        M5LcdTextDatum          = 0x32    %5
+        M5LcdTextSize           = 0x33    %6
+        M5LcdTextFont           = 0x34    %7
+        M5LcdSetCursor          = 0x35    %8
+    % LCD Shapes    [25+]
+        M5LcdDrawPixel          = 0x36    %1
+        M5LcdDrawLine           = 0x37    %2
+        M5LcdDrawFastVLine      = 0x38    %3
+        M5LcdDrawFastHLine      = 0x39    %4
+        M5LcdDrawRectFOR        = 0x3A    
+        M5LcdFillRect           = 0X3A    %5
+        M5LcdDrawRect           = 0X3A    %6
+        M5LcdDrawRoundRect      = 0X3B    %7
+        M5LcdFillRoundRect      = 0X3B    %8
+        M5LcdDrawCircleFO       = 0x3C
+        % M5LcdDrawCircle                 %9
+        % M5LcdFillCircle                 %10
+        M5LcdDrawEllipseFO      = 0x3D  
+        % M5LcdDrawEllipse                %11
+        % M5LcdFillEllipse                %12
+        M5LcdDrawTriangleFO     = 0x3E
+        % M5LcdDrawTriangle               %13
+        % M5LcdFillTriangle               %14
+        M5LcdDrawBezier         = 0x3F    %15
+        M5LcdDrawEllipseArcFO   = 0x40
+        % M5LcdDrawEllipseArc             %16
+        % M5LcdFillEllipseArc             %17
+        M5LcdDrawArcFO          = 0x41    
+        % M5LcdfillArc                    %18
+        % M5LcdDrawArc                    %19
+        M5LcdDrawCircleHelper   = 0x42    %20
+        M5LcdFillCircleHelper   = 0x43    %21
+        M5LcdFloodFill          = 0x44    %22
+        M5LcdPaint              = 0x45    %23
+        M5LcdFillAffine         = 0x46    %24
+        M5LcdDrawGradientLine   = 0x47    %25
+    % LCD Images
+        M5LcdDrawDrawBMP        = 0x48
+        M5LcdDrawDrawJPG        = 0x49
+        M5LcdDrawDrawPNG        = 0x50
+    % IMU       0x50    %TODO
+    % Log       0x60    %TODO
+    % Power     0x70    [20]
+        M5PwrBegin              = 0x70   %1
+        M5PwrSetExtPwr          = 0x71    %2
+        M5PwrGetExtOut          = 0x72    %3
+        % M5PwrSetUSBOut                  %CoreS3Only
+        % M5PwrGetUSBOut                  %CoreS3Only         
+        M5PwrSetLED             = 0x73    %6
+        M5PwrOff                = 0x74    %7
+        % M5PwrTimerSleep             
+        % M5PwrDeepSleep              
+        % M5PwrLightSleep             
+        M5PwrGetBatteryLvl      = 0x76    %11
+        M5PwrSetBatteryChg      = 0x77    %12
+        M5PwrSetChargeCurr      = 0x78    %13
+        M5PwrSetChargeVolt      = 0x79    %14
+        M5PwrIsCharging         = 0x7A    %15
+        M5PwrGetBatteryVolt     = 0x7B    %16
+        M5PwrGetBatteryCurr     = 0x7C    %17
+        M5PwrGetKeyState        = 0x7D    %18
+        M5PwrSetVibration       = 0x7E    %19
+        M5PwrGetType            = 0x7F    %20
+    % RTC       0x80    %TODO
+    % Touch     0x90    %TODO
+    % Button    0xA0
+        M5ButtonUpdate          = 0xA0
+    % Speaker   0xB0    [5]
+        SpeakerBegin            = 0xB0    %1 
+        SpeakerStop             = 0xB1    %2
+        SpeakerTone             = 0xB2    %3
+        SpeakerSetVolume        = 0xB3    %4
+        SpeakerPlayRaw          = 0xB7    %5
+    % Mic       0xC0    %TODO
+        M5MicBegin              = 0xC0
+    % pSRAM     0xD0    %TODO
+        % The Current ESP32DevKit-C supported in MATLAB does not include PSRAM
+    % SD        0xE0    %TODO
     end
     properties(Access = public, Constant = true)
         lcdColor = struct(...
@@ -89,7 +172,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             'WHITE'      ,   0xFFFF, ...      % RGB888 255, 255, 255 
             'ORANGE'     ,   0xFDA0, ...      % RGB888 255, 180,   0 
             'GREENYELLOW',   0xB7E0, ...      % RGB888 180, 255,   0 
-            'PINK'       ,   0xFE19, ...      % RGB888 255, 192, 203  //Lighter pink, was 0xFC9F
+            'PINK'       ,   0xFE19, ...      % RGB888 255, 192, 203  %Lighter pink, was 0xFC9F
             'BROWN'      ,   0x9A60, ...      % RGB888 150,  75,   0 
             'GOLD'       ,   0xFEA0, ...      % RGB888 255, 215,   0 
             'SILVER'     ,   0xC618, ...      % RGB888 192, 192, 192 
@@ -157,7 +240,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
     
     methods(Access = public)
     %% M5Unified basic functions
-        % M5.begin     /// Perform initialization process at startup.
+        % M5.begin     % Perform initialization process at startup.
         % M5.update 
         % M5.getBoard
         % M5.getUpdateMsec
@@ -167,8 +250,8 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % M5.begin Instantiates the following when you call it
         function begin(obj)
         % M5.begin Instantiates the following when you call it
-            %    M5GFX Display;  // setPrimary
-            %    M5GFX &Lcd = Display; //Creates a pointer for LCD to Display
+            %    M5GFX Display;  % setPrimary
+            %    M5GFX &Lcd = Display; %Creates a pointer for LCD to Display
             %    IMU_Class Imu;
             %    Log_Class Log;
             %    Power_Class Power;
@@ -177,14 +260,14 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             %    Button_Class BtnA;
             %    Button_Class BtnB;
             %    Button_Class BtnC;
-            %    Button_Class BtnEXT;  // CoreInk top button
-            %    Button_Class BtnPWR;  // CoreInk power button / AXP192 power button
-            %    I2C_Class& In_I2C = m5::In_I2C; //for internal I2C device
-            %    I2C_Class& Ex_I2C = m5::Ex_I2C; //for external I2C device (Port.A)
+            %    Button_Class BtnEXT;  % CoreInk top button
+            %    Button_Class BtnPWR;  % CoreInk power button / AXP192 power button
+            %    I2C_Class& In_I2C = m5::In_I2C; %for internal I2C device
+            %    I2C_Class& Ex_I2C = m5::Ex_I2C; %for external I2C device (Port.A)
             %    Speaker_Class Speaker;
             %    Mic_Class Mic;
 
-            cmdID = obj.M5Begin; %0x01
+            cmdID = obj.M5Begin;
             dataIn = 0x00;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
@@ -192,7 +275,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         %M5.getBoard()
         function boardName = getM5Type(obj)
         % boardName = getM5Type() gets the board type of the runtime environment. @return board type
-            cmdID = 0x02;             
+            cmdID = obj.M5BoardType;             
             dataIn = 0x00;
             [dataOut, ~] = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
             BoardType = cast(dataOut,'uint8');
@@ -224,7 +307,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             %    returns the size of the heap memory, amount of free heap,
             %    size of PSRAM, and amount of free PSRAM respectively
             %    Index the result to access each value.
-            cmdID = 0x03;
+            cmdID = obj.M5GetMemoryStatus;
             val = sendCommand(obj, obj.LibraryName, cmdID, 0x00);
             val = uint8(val);
             heapSize = typecast(val(1:4),'uint32');
@@ -242,18 +325,18 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % delay(n) delays the M5 for a specified duration n between 0 and
         %    255 ms, where n can also be a fraction.
             durBytes = uint8(dur);
-            cmdID = 0x04;
+            cmdID = obj.M5Delay;
             dataIn = durBytes;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
-%% M5 LCD Display [12]
+%% M5 LCD Display [14]
 % M5.LCD is a reference to M5.Display which is an M5GFX object inhereted from LGFX
 % lcdBegin-------------------------------------------------------------------------------------
          % 1. M5.Display.begin();
          function lcdBegin(obj) %Not really needed since M5.begin calls this
          % lcdBegin initializes the M5 lcd.
          % Implicitly called by M5.begin
-            cmdID = 0x20; 
+            cmdID = obj.M5LcdBegin; 
             dataIn = 0x00; 
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
          end
@@ -264,14 +347,14 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 4. M5.Display.clear();
         function lcdClear(obj)
         % lcdClear clears the M5 lcd
-            cmdID = 0x23; 
+            cmdID = obj.M5LcdClear; 
             dataIn = 0x00; 
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
 %-------------------------------------------------------------------------------------
         % 5. M5.Display.display();
         function lcdDisplay(obj)
-            cmdID = 0x24;
+            cmdID = obj.M5LcdDisplay;
             % [dataOut, payloadSize] = sendCommand(obj, libName, commandID, dataIn, timeout)
             dataIn = 0x00;
             sendCommand(obj,obj.LibraryName,cmdID,dataIn);
@@ -280,7 +363,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 6. M5.Display.height()
         function height = lcdGetHeight(obj)
         % height = lcdGetHeight() returns the height of the lcd
-            cmdID = 0x25;
+            cmdID = obj.M5LcdgetHeight;
             % [dataOut, payloadSize] = sendCommand(obj, libName, commandID, dataIn, timeout)
             dataIn = 0x00;
             dataOut = sendCommand(obj,obj.LibraryName,cmdID,dataIn);
@@ -290,7 +373,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 7. M5.Display.width()
         function width = lcdGetWidth(obj) 
         % width = lcdGetWidth() returns the width of the lcd
-            cmdID = 0x26;
+            cmdID = obj.M5LcdgetWidth;
             % [dataOut, payloadSize] = sendCommand(obj, libName, commandID, dataIn, timeout)
             dataIn = 0x00;
             dataOut = sendCommand(obj,obj.LibraryName,cmdID,dataIn);
@@ -300,7 +383,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 8. M5.getDisplayCount()
         function count = lcdGetDisplays(obj)
         % count = lcdGetDisplays() returns the number of displays connected to the M5
-            cmdID = 0x27;
+            cmdID = obj.M5LcdgetDispCount;
             % [dataOut, payloadSize] = sendCommand(obj, libName, commandID, dataIn, timeout)
             dataIn = 0x00;
             count = sendCommand(obj,obj.LibraryName,cmdID,dataIn);
@@ -315,7 +398,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         function lcdBrightness(obj,brightness)
         % lcdBrightness(brightness) adjusts the display backlight to the
         % specified brightness between 0(Off) and 255 (Full)
-            cmdID = 0x2A; 
+            cmdID = obj.M5LcdsetBrightness; 
             dataIn = uint8(brightness); 
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
          end
@@ -331,7 +414,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         function lcdPrint(obj, string)
         % lcdPrint(string) displays the specified string on the display a
         %     the current cursor location
-            cmdID = 0x2E;
+            cmdID = obj.M5LcdPrint;
             sendCommand(obj,obj.LibraryName,cmdID,uint8(char(string))); 
         end
 % lcdPrintLn-------------------------------------------------------------------------------------
@@ -339,7 +422,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         function lcdPrintLn(obj,string)
         % lcdPrintLn(string) displays the specified string on the display
         %     on a new line
-            cmdID = 0x2F; 
+            cmdID = obj.M5LcdPrintLn; 
             sendCommand(obj,obj.LibraryName,cmdID,uint8(char(string))); 
         end
 % lcdDrawStr-------------------------------------------------------------------------------------
@@ -349,7 +432,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             xybytes = typecast(swapbytes([uint16(x), uint16(y)]),'uint8');
             text = uint8(char(string));
             xytextData = [xybytes,text];
-            cmdID = 0x30;
+            cmdID = obj.M5LcdDrawString;
             sendCommand(obj,obj.LibraryName,cmdID,xytextData);
         end
 % lcdTextColor-------------------------------------------------------------------------------------
@@ -368,7 +451,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
                 % Code to execute when there are more than two input arguments
                 disp('Invalid number of arguments');
             end
-            cmdID = 0x31;
+            cmdID = obj.M5LcdTextColor;
             sendCommand(obj,obj.LibraryName,cmdID,fbColor); 
         end
 % lcdTextDatum-------------------------------------------------------------------------------------
@@ -379,14 +462,14 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             % 4:Middle Left         5:Middle Centre     6:Middle Right         
             % 8:Bottom Left         9:Bottom Centre     10:Bottom Right
             % 16:Baseline Left      17:Baseline Centre  18:Baseline Right
-            cmdID = 0x32;
+            cmdID = obj.M5LcdTextDatum;
             sendCommand(obj,obj.LibraryName,cmdID,uint8(datum)); 
         end
 % lcdTextSize-------------------------------------------------------------------------------------
         % 6. M5.Display.setTextSize(size); %setTextSize is a float
         function lcdTextSize(obj, size)
         % lcdTextSize(size) sets the text size, where size can be a fraction
-            cmdID = 0x33;
+            cmdID = obj.M5LcdTextSize;
             sendCommand(obj,obj.LibraryName,cmdID,uint8(size)); 
         end
 % lcdFont-------------------------------------------------------------------------------------
@@ -394,9 +477,9 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 7. M5.Display.setTextFont(font);
         function lcdFont(obj, font)
         % lcdFont(font) sets a font type from 0-8
-        %     Font Types: 0.ft_unknown   1.ft_glcd  2.ft_bmp  3. ft_rle  4. ft_gfx  
-        %     5. ft_bdf  6. ft_vlw  7. ft_u8g2  8. ft_ttf   7. 
-            cmdID = 0x34;
+        %     Font Types: 0.ft_unknown   1.ft_glcd  2.ft_bmp    3. ft_rle  4. ft_gfx  
+        %                 5. ft_bdf      6. ft_vlw  7. ft_u8g2  8. ft_ttf 
+            cmdID = obj.M5LcdTextFont;
             sendCommand(obj,obj.LibraryName,cmdID,uint8(font)); 
         end
 % lcdCursor-------------------------------------------------------------------------------------
@@ -405,7 +488,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % lcdCursor(xPos, yPos) sets the cursor at the positiion (xPos, yPos)
             xyPos = [uint16(xPos), uint16(yPos)];
             xyData = typecast(swapbytes(xyPos),'uint8');
-            cmdID = 0x35;
+            cmdID = obj.M5LcdSetCursor;
             sendCommand(obj,obj.LibraryName,cmdID,xyData); 
         end
 %% LCD Shapes [25+]
@@ -420,7 +503,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             xyc = [uint16(x), uint16(y)];
             end
             xycData = typecast(swapbytes(xyc),'uint8');
-            cmdID = 0x36;
+            cmdID = obj.M5LcdDrawPixel;
             sendCommand(obj,obj.LibraryName,cmdID,xycData); 
         end
 %-------------------------------------------------------------------------------------
@@ -431,7 +514,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         %     (x1,y1) to point (x2,y2) in color
             xyxyc = [uint16(x1), uint16(y1), uint16(x2), uint16(y2),uint16(color)];
             xyxycData = typecast(swapbytes(xyxyc),'uint8');
-            cmdID = 0x37;
+            cmdID = obj.M5LcdDrawLine;
             sendCommand(obj,obj.LibraryName,cmdID,xyxycData); 
         end
 %-------------------------------------------------------------------------------------
@@ -494,23 +577,6 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
                 lcdDrawAllRectangle(obj, rectype, x, y, width, height, radius, color) 
             end
         end
-%% lcdDrawAllRectangle-------------------------------------------------------------------------------------
-        function lcdDrawAllRectangle(obj, rectype, x, y, width, height, varargin)
-            % lcdDrawAllRectangle(rectype, x, y, width, height, varargin) 
-            % rectype is read as a Bitmask: bit2(colored),bit1(rounded),bit0(filled)
-            % Usually this function would be called by one of the other rectangle functions, 
-            % but you can also call it directly if you wish
-            xywhrc = [uint16(x), uint16(y), uint16(width), uint16(height)];
-            if (bitand(rectype, 2)) %Rounded
-                xywhrc = [xywhrc, uint16(varargin{1})]; %Add the radius
-            end
-            if (bitand(rectype, 4)) %Colored 
-                xywhrc = [xywhrc, uint16(varargin{end})]; %Add the color
-            end
-            dataOut = typecast(swapbytes(xywhrc),'uint8');
-            cmdID = 0x3A;
-            sendCommand(obj,obj.LibraryName,cmdID,[rectype,dataOut]); 
-        end
 %-------------------------------------------------------------------------------------
          % 9. M5.Display.drawCircle(x, y, r, fill[true/false],color[rgb565])
           function lcdDrawCircle(obj, x, y, radius, fill, color)
@@ -523,7 +589,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             if nargin > 5
                 xyrfc = [xyrfc, typecast(swapbytes(uint16(color)),'uint8')];
             end
-            cmdID = 0x3C;
+            cmdID = obj.M5LcdDrawCircleFO;
             sendCommand(obj,obj.LibraryName,cmdID,xyrfc); 
         end
 %-------------------------------------------------------------------------------------
@@ -595,13 +661,14 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
         % 9. M5.Display.drawPngUrl("http://example.com/url.png", 0, 0);
 %-------------------------------------------------------------------------------------      
+
 % displayJPG -------------------------------------------------------------------------------------
 % NOT WORKING/UNTESTED
 % Image must be broken up into multiple 720 byte packets and buffered before calling drawjpg
         function displayJPG(obj) 
             % display.drawJpg(jpg_image, ~0u, 0, 0, display.width(), display.height(), 0, 0, 0.0f, -1.0f);
             % drawJpg(const uint8_t *jpg_data, size_t jpg_len, uint16_t x = 0, uint16_t y = 0, uint16_t maxWidth = 0, uint16_t maxHeight = 0, uint16_t offX = 0, uint16_t offY = 0, jpeg_div_t scale = JPEG_DIV_NONE);
-            cmdID = 0x4B;
+            cmdID = obj.M5DrawJPG;
             imData = uint8(fileread('yorku-logo.jpg'));
             sendCommand(obj,obj.LibraryName,cmdID,imData);
 
@@ -624,7 +691,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %NOT WORKING/UNTESTED
         function drawBitmap(obj, bitmap)
             %  Write a 320x240 RGB bitmap using multiple send commands
-            cmdID = 0x4A;
+            cmdID = obj.M5DrawBitmap;
             % Convert the bitmap to a byte vector
             byteVector = reshape(bitmap, [], 1);
             % Calculate the number of send commands needed
@@ -643,30 +710,41 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
                 sendCommand(obj, obj.LibraryName, cmdID, data);
             end
         end
+% drawPNG-------------------------------------------------------------------------------------
+%NOT WORKING - Yorku-iconXS.png is 491 bytes, but doesn't buffer/render correctly
+         function lcdDrawPNG(obj)
+            fileID = fopen('York-iconXS.png', 'rb');
+            pngData = fread(fileID, inf, '*uint8');
+            %pngData = uint8(fileread('York-iconXS.png'));
+            cmdID = obj.M5LcdDrawDrawPNG;
+            sendCommand(obj,obj.LibraryName,cmdID,byteVector); 
+         end
+
+
 %% M5 Real Time Clock Class-------------------------------------------------------------------------------------
         % M5.Rtc.isEnabled();
 %% M5 Power Class [20 functions]------------------------------------------------------------------------------------
 % M5PowerBegin------------------------------------------------------------------------------------
         % 1. M5.Power.begin(void)
         function powerBegin(obj) %Not really needed since M5.begin calls this
-            cmdID = 0x70;
+            cmdID = obj.M5PwrBegin;
             dataIn = 0x00;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
 %-------------------------------------------------------------------------------------
-        % 2. M5.Power.setExtOutput(bool enable, ext_port_mask_t port_mask = (ext_port_mask_t)0xFF); /// Set power output of the external ports. 
+        % 2. M5.Power.setExtOutput(bool enable, ext_port_mask_t port_mask = (ext_port_mask_t)0xFF); % Set power output of the external ports. 
 %-------------------------------------------------------------------------------------
-        % 3. M5.Power.getExtOutput(void); /// Get power output of the external ports.
+        % 3. M5.Power.getExtOutput(void); % Get power output of the external ports.
 %-------------------------------------------------------------------------------------
-        % 4. M5.Power.setUsbOutput(bool enable); /// Set power output of the main USB port.
+        % 4. M5.Power.setUsbOutput(bool enable); % Set power output of the main USB port.
 %-------------------------------------------------------------------------------------
-        % 5. M5.Power.getUsbOutput(void);   /// Get power output of the main USB port.
+        % 5. M5.Power.getUsbOutput(void);   % Get power output of the main USB port.
 % M5PowerLED------------------------------------------------------------------------------------
         % 6. M5.Power.setLed(uint8_t brightness)
         function powerLED(obj, brightness)
         % powerLED(brightness) sets the intensity of the power LED
         %     brightness = 0(off) to 255(Full Intensity)
-            cmdID = 0x73;
+            cmdID = obj.M5PwrSetLED;
             dataIn = uint8(brightness);
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
@@ -674,10 +752,10 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 7. M5.Power.powerOff(void);
         function powerOff(obj)
         % powerOff turn all M5 power off.
-            cmdID = 0x74;
+            cmdID = obj.M5PwrOff;
             dataIn = 0x00;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
-            M5UnifiedDelete(obj);
+            M5UnifiedSelfDistruct(obj);
         end
 %-------------------------------------------------------------------------------------
         % 8. M5.Power.timerSleep(int seconds);
@@ -691,7 +769,8 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 11. int32 = M5.Power.getBatteryLevel(void);
         function battLevel = powerGetBatteryLevel(obj)
         % battLevel = powerGetBatteryLevel returns the current battery level
-            cmdID = 0x76;
+        %   battLevel = 0% to 100%
+            cmdID = obj.M5PwrGetBatteryLvl;
             dataIn = 0x00;
             dataOut = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
             battLevel = typecast(cast(dataOut,'uint8'),'uint32');
@@ -707,29 +786,28 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % GetBatteryVoltage------------------------------------------------------------------------------------
         % 16. int16_t = M5.Power.getBatteryVoltage(void);
         function battVoltage = powerGetBatteryVoltage(obj)
-        % battVoltage = powerGetBatteryVoltaget() returns the amount of
-        %     voltage in the M5 battery            
-            cmdID = 0x7B;
+        % battVoltage = powerGetBatteryVoltaget() returns the M5 battery voltage in mV            
+            cmdID = obj.M5PwrGetBatteryVolt;
             dataIn = 0x00;
             dataOut = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
-            battVoltage = typecast(cast(dataOut,'uint8'),'uint16');
+            battVoltage = typecast(cast(dataOut,'uint8'),'int16');
         end
 % GetBatteryCurrent------------------------------------------------------------------------------------
         % 17.  int32_t = M5.Power.getBatteryCurrent(void);
         function battCurrent = powerGetBatteryCurrent(obj)
-        % battCurrent = powerGetBatteryCurrent() returns the amount of current
-        %     in the M5 battery
-            cmdID = 0x7C;
+        % battCurrent = powerGetBatteryCurrent() returns current flow in mA
+        % positive value charging/negative value discharging 
+            cmdID = obj.M5PwrGetBatteryCurr;
             dataIn = 0x00;
             dataOut = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
-            battCurrent = typecast(cast(dataOut,'uint8'),'uint32');
+            battCurrent = typecast(cast(dataOut,'uint8'),'int32');
         end
 % M5PwrGetKeyState------------------------------------------------------------------------------------
         % 18.  uint8_t = M5.Power.getKeyState(void);
         function keystate = powerGetKeyState(obj)
         % keystate = powerGetKeyState() returns whether the power key was pressed
         %    keystate = 0=none / 1=long pressed / 2=short clicked / 3=both
-            cmdID = 0x7D;
+            cmdID = obj.M5PwrGetKeyState;
             dataIn = 0x00;
             keystate = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
@@ -738,7 +816,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         function vibrationMotor(obj, level)
         % vibrationMotor(level) sets the motor to the specified intensity
         %     level = 0 to 255
-            cmdID = 0x7E;
+            cmdID = obj.M5PwrSetVibration;
             dataIn = uint8(level);
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
@@ -752,7 +830,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             % [pwrButton,buttonA,buttonB,buttonC] = buttonUpdate(obj) checks whether
             %     the Power Button, Button A, Button B or Button C were pressed. 
             %     Index for the button whose state you want to check.
-                    cmdID = 0xA0;
+                    cmdID = obj.M5ButtonUpdate;
                     dataIn = 0x00;
                     % Print out the button names with their state information
                     %buttonNames = {'Power Button', 'Button A', 'Button B', 'Button C'};
@@ -776,7 +854,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % SpeakerBegin-------------------------------------------------------------------------------------
         % 1. M5.Speaker.begin();
         function speakerBegin(obj) %Not really needed since M5.begin calls this
-            cmdID = 0xB0;
+            cmdID = obj.SpeakerBegin;
             dataIn = 0x00;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
@@ -784,7 +862,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 2. M5.Speaker.stop();
         function speakerStop(obj)
         % speakerStop() Stops speaker output
-            cmdID = 0xB1; 
+            cmdID = obj.SpeakerStop; 
             dataIn = 0x00; 
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
@@ -815,7 +893,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
                 counter = counter+1;
             end
 
-            cmdID = 0xB2;
+            cmdID = obj.SpeakerTone;
             dataIn = toneData;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
@@ -835,21 +913,22 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             % Concatenate byte arrays
             setVolData = [dirBytes, diffBytes];
         
-            cmdID = 0xB3;
+            cmdID = obj.SpeakerSetVolume;
             dataIn = setVolData;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
 %% M5 Microphone Class
 % micBegin-----------------------------------------------------------------------------------
         function micBegin(obj) %Not really needed since M5.begin calls this
-            cmdID = 0xC1;
+            cmdID = obj.M5MicBegin;
             val = sendCommand(obj, obj.LibraryName, cmdID, 0x00);
             disp(val)
         end
     end %of Public Methods
 
     methods(Access = private)
-        function M5UnifiedDelete(~)
+        %% M5UnifiedSelfDistruct-------------------------------------------------------------------------------------
+        function M5UnifiedSelfDistruct(~)
 
             % Remove arduino and M5Unified objects from the workspace
             
@@ -874,6 +953,21 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             %disp(M5UnifiedObjNames);
             expression = strjoin(['clear' string(M5UnifiedObjNames) string(arduinoObjNames)],' ');
             evalin('base', expression);
+        end
+        %% lcdDrawAllRectangle-------------------------------------------------------------------------------------
+        function lcdDrawAllRectangle(obj, rectype, x, y, width, height, varargin)
+            % lcdDrawAllRectangle(rectype, x, y, width, height, varargin) 
+            % rectype is read as a Bitmask: bit2(colored),bit1(rounded),bit0(filled)
+            xywhrc = [uint16(x), uint16(y), uint16(width), uint16(height)];
+            if (bitand(rectype, 2)) %Rounded
+                xywhrc = [xywhrc, uint16(varargin{1})]; %Add the radius
+            end
+            if (bitand(rectype, 4)) %Colored 
+                xywhrc = [xywhrc, uint16(varargin{end})]; %Add the color
+            end
+            dataOut = typecast(swapbytes(xywhrc),'uint8');
+            cmdID = obj.M5LcdDrawRectFOR;
+            sendCommand(obj,obj.LibraryName,cmdID,[rectype,dataOut]); 
         end
     end
 end %of M5Unified Class

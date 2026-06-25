@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addOn>
+  <identifier>b313688e-800a-415f-b056-b41df863d83c</identifier>
+  <displayType>Collection</displayType>
+  <translatedDisplayType>
+    <en_US>Collection</en_US>
+    <ja_JP>コレクション</ja_JP>
+    <ko_KR>컬렉션</ko_KR>
+    <zh_CN>集合</zh_CN>
+  </translatedDisplayType>
+  <name>M5Unified Add-On Library for Arduino</name>
+  <author>Eric Prandovsky</author>
+  <version>0.4.7</version>
+  <downloadUrl>https://www.mathworks.com/matlabcentral/mlc-downloads/downloads/b313688e-800a-415f-b056-b41df863d83c/bb5da716-6706-4d0b-a3f5-1893616d72f0/packages/zip?src=addons_ml_desktop_install&amp;profile_id=18214706&amp;license=40713236&amp;release_family=R2024a</downloadUrl>
+  <licenseUrl>https://addons.mathworks.com/registry/v1/b313688e-800a-415f-b056-b41df863d83c/0.4.7.0/-/license</licenseUrl>
+  <previewImageUrl>https://www.mathworks.com/responsive_image/160/120/0/0/0/cache/matlabcentral/mlc-downloads/downloads/b313688e-800a-415f-b056-b41df863d83c/bb5da716-6706-4d0b-a3f5-1893616d72f0/images/1729100043.png</previewImageUrl>
+  <releaseNotesUrl>https://www.mathworks.com/add-ons/b313688e-800a-415f-b056-b41df863d83c/bb5da716-6706-4d0b-a3f5-1893616d72f0/releaseNotes</releaseNotesUrl>
+  <installationFolder>Collections</installationFolder>
+</addOn>
