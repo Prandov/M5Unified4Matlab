@@ -3,7 +3,7 @@
 % M5Unified class
 % Copyright 2024, Eric Prandovszky, Greatlove Bariboloka 
 % Contact: prandov@yorku.ca, greatlebari@gmail.com
-% Version: 0.4.1
+% Version: 0.4.2
 % Sept 30, 2024
 % This .m file interacts with the M5UnifiedML.h C header file uploaded to an M5Stack device.
 % ==================================================================================================
@@ -61,7 +61,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % Mic       0xC0
         % pSRAM     0xD0
         % SD        0xE0
-        % For now, other command ID's are set within their function.
+        % For now, most command ID's are set within their function.
     end
     properties(Access = public, Constant = true)
         lcdColor = struct(...
