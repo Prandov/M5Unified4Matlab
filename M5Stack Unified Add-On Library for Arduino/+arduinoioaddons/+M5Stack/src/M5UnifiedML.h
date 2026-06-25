@@ -1,14 +1,16 @@
 ﻿/**
  * @file M5UnifiedML.h
  *
- * Class definition for M5Stack class that wraps APIs of the M5Unified library
+ * Class definition for M5Stack class that wraps APIs of the M5Unified library.
  * https://github.com/m5stack/M5Unified. Based on the example DHT22 add-on library.
- *
  * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast, 
- *
  * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com 
- *
+ * Contact: prandov@yorku.ca, greatlebari@gmail.com
+ * Version: 0.4.6
+ * Date: Oct 22, 2024
+ * This .h file interacts with the M5Unified.m class in MATLAB.
  */
+
 /*
 The M5 Unified library provides access to the built-in hardware of M5Stack controllers. The library functionality 
 is available through the m5 namespace and includes the following:
@@ -299,6 +301,120 @@ class M5UnifiedML : public LibraryBase
         // Register the library to the server
         a.registerLibrary(this);
     }
+
+public:
+    void setup()
+    {
+        M5.begin();
+        M5.Display.setCursor(0, 10);
+        M5.Display.setTextSize(2);
+        M5.Display.println("<- Power Off (Hold 5s)");
+        M5.Display.setCursor(0, 50);
+        M5.Display.setTextSize(1);
+        M5.Display.println("MATLAB Support Package for Arduino Hardware");
+        M5.Display.println("with M5Unified Add-On Library for Arduino");
+        M5.Display.print("IO Server Version: ");
+        M5.Display.println(BOARD_IO_VERSION);
+    }
+public:
+    void loop() {
+
+        M5.delay(1); //ms
+        M5.update();
+        //TODO:
+        //When there is no active connection to MATLAB, run some demo code. 
+        //Checking for !Serial or Serial.available()=0 both don't work.
+      /* 
+      if (Serial) {
+          M5.Display.print("Serial Connection to MATLAB");
+          int cursor_y = M5.Display.getCursorY();
+          M5.Display.setCursor(0, cursor_y);
+     }else{
+          M5.Display.print("No Connection to MATLAB");
+          int cursor_y = M5.Display.getCursorY();
+          M5.Display.setCursor(0, cursor_y);
+        //------------------- Button.ino Example
+        /// List of available buttons:
+        //  M5Stack BASIC/GRAY/GO/FIRE:  BtnA,BtnB,BtnC
+        //  M5Stack Core2:               BtnA,BtnB,BtnC,BtnPWR
+        //  M5Stick C/CPlus:             BtnA,BtnB,     BtnPWR
+        //  M5Stick CoreInk:             BtnA,BtnB,BtnC,BtnPWR,BtnEXT
+        //  M5Paper:                     BtnA,BtnB,BtnC
+        //  M5Station:                   BtnA,BtnB,BtnC,BtnPWR
+        //  M5Tough:                                    BtnPWR
+        //  M5Atom M5AtomU:              BtnA
+        //  M5Stamp Pico/C3/C3U:         BtnA
+        //
+          static constexpr const int colors[] = { TFT_WHITE, TFT_CYAN, TFT_RED, TFT_YELLOW, TFT_BLUE, TFT_GREEN };
+          static constexpr const char* const names[] = { "none", "wasHold", "wasClicked", "wasPressed", "wasReleased", "wasDeciedCount" };
+        
+          int w = M5.Display.width() / 3;
+          int h = M5.Display.height() / 5;
+          M5.Display.startWrite();
+        
+          /// BtnPWR: "wasClicked"/"wasHold"  can be use.
+          /// BtnPWR of CoreInk: "isPressed"/"wasPressed"/"isReleased"/"wasReleased"/"wasClicked"/"wasHold"/"isHolding"  can be use.
+          int state = M5.BtnPWR.wasHold() ? 1
+                    : M5.BtnPWR.wasClicked() ? 2
+                    : M5.BtnPWR.wasPressed() ? 3
+                    : M5.BtnPWR.wasReleased() ? 4
+                    : M5.BtnPWR.wasDecideClickCount() ? 5
+                    : 0;
+        
+          if (state)
+            {
+                M5_LOGI("BtnPWR:%s  count:%d", names[state], M5.BtnPWR.getClickCount());
+                M5.Display.fillRect(0, 0, w-1, h, colors[state]);
+            }
+            /// BtnA,BtnB,BtnC,BtnEXT: "isPressed"/"wasPressed"/"isReleased"/"wasReleased"/"wasClicked"/"wasHold"/"isHolding"  can be use.
+                state = M5.BtnA.wasHold() ? 1
+                    : M5.BtnA.wasClicked() ? 2
+                    : M5.BtnA.wasPressed() ? 3
+                    : M5.BtnA.wasReleased() ? 4
+                    : M5.BtnA.wasDecideClickCount() ? 5
+                    : 0;
+            if (state)
+            {
+                M5_LOGI("BtnA:%s  count:%d", names[state], M5.BtnA.getClickCount());
+                M5.Display.fillRect(0, h*4, w-1, h, colors[state]);
+            }
+                state = M5.BtnB.wasHold() ? 1
+                    : M5.BtnB.wasClicked() ? 2
+                    : M5.BtnB.wasPressed() ? 3
+                    : M5.BtnB.wasReleased() ? 4
+                    : M5.BtnB.wasDecideClickCount() ? 5
+                    : 0;
+            if (state)
+            {
+                M5_LOGI("BtnB:%s  count:%d", names[state], M5.BtnB.getClickCount());
+                M5.Display.fillRect(w*1, h*4, w-1, h, colors[state]);
+            }
+                state = M5.BtnC.wasHold() ? 1
+                    : M5.BtnC.wasClicked() ? 2
+                    : M5.BtnC.wasPressed() ? 3
+                    : M5.BtnC.wasReleased() ? 4
+                    : M5.BtnC.wasDecideClickCount() ? 5
+                    : 0;
+            if (state)
+            {
+                M5_LOGI("BtnC:%s  count:%d", names[state], M5.BtnC.getClickCount());
+                M5.Display.fillRect(w*2, h*4, w-1, h, colors[state]);
+            }
+            state = M5.BtnEXT.wasHold() ? 1
+                : M5.BtnEXT.wasClicked() ? 2
+                : M5.BtnEXT.wasPressed() ? 3
+                : M5.BtnEXT.wasReleased() ? 4
+                : M5.BtnEXT.wasDecideClickCount() ? 5
+                : 0;
+            if (state)
+            {
+            M5_LOGI("BtnEXT:%s  count:%d", names[state], M5.BtnEXT.getClickCount());
+            M5.Display.fillRect(w*2, 0, w-1, h, colors[state]);
+            }
+            M5.Display.endWrite();
+        } //if(Serial.available)
+        */
+    } //void loop()
     
 //---------------------------------------------------------------------------------------------------------------------
 //  ..####...##...##..#####...........##..##..##..##..#####...##......#####..
@@ -1339,8 +1455,9 @@ display.setTextSize(2);
 //---------------------------------------------------------------------------------------------------------------------                /*
                 // case M5ButtonUpdate 0xA0
                 case M5ButtonUpdate: {
+                    M5.delay(1); //1ms delay was in the example so I left it for now
                     // Update the button states
-                    M5.update();
+                    M5.update(); //also added to void loop
                     /// BtnPWR: "wasClicked"/"wasHold"  can be use.
                     /// BtnPWR of CoreInk: "isPressed"/"wasPressed"/"isReleased"/"wasReleased"/"wasClicked"/"wasHold"/"isHolding"  can be use.
                     uint8_t BPstate = M5.BtnPWR.wasHold() ? 1
@@ -1377,6 +1494,8 @@ display.setTextSize(2);
                             : 0;
                             // join all the button states
                     uint32_t buttonStates = (BPstate << 24) | (BAstate << 16) | (BBstate << 8) | BCstate;
+                    // Print debug string
+                    debugPrint(MSG_M5ButtonUpdate);  
                     // Send response
                     sendResponseMsg(cmdID, (byte*)&buttonStates, 4);
                     break;

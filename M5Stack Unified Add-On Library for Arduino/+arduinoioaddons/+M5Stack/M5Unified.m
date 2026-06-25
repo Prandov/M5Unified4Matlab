@@ -3,8 +3,8 @@
 % M5Unified class
 % Copyright 2024, Eric Prandovszky, Greatlove Bariboloka 
 % Contact: prandov@yorku.ca, greatlebari@gmail.com
-% Version: 0.4.2
-% Sept 30, 2024
+% Version: 0.4.6
+% Date: Oct 22, 2024
 % This .m file interacts with the M5UnifiedML.h C header file uploaded to an M5Stack device.
 % ==================================================================================================
 
@@ -26,7 +26,7 @@
 
 % Use the 'addon' object namespace to communacte with the integrated peripherals.
 % Example:
-%   m5u.begin;
+% 
 %   m5u.powerLED(255);
 
 %% References:
@@ -51,16 +51,16 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         M5LcdClear            = 0x23
         M5LcdPrt              = 0x2E 
         M5LcdPrtLn            = 0x2F 
-        % IMU       0x50    
-        % Log       0x60
+        % IMU       0x50    %Todo
+        % Log       0x60    %Todo
         % Power     0x70 //20 functions
-        % RTC       0x80
-        % Touch     0x90
+        % RTC       0x80    %Todo
+        % Touch     0x90    %Todo
         % Button    0xA0
         % Speaker   0xB0
-        % Mic       0xC0
-        % pSRAM     0xD0
-        % SD        0xE0
+        % Mic       0xC0    %Todo
+        % pSRAM     0xD0    %Todo
+        % SD        0xE0    %Todo
         % For now, most command ID's are set within their function.
     end
     properties(Access = public, Constant = true)
@@ -94,6 +94,12 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             'TRANSPARENT',   0x0120 ...
         );
     end
+
+    properties(SetAccess = private,GetAccess=public)
+        m5Type;
+        lcdResolution;
+        batteryLevel;
+    end
     %Override constant properties in the class to specify the location of source header files.   
     %The support package auto-detects the class only if you have redefined all the properties. If you do not need a value, leave the field empty.
     properties(Access = protected, Constant = true)
@@ -120,6 +126,12 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
                 if count >0
                     error('M5Unified library has already been initialized for this arduino object ');
                 end
+                %obj.begin; %moved to void setup in the header
+                %pause(0.001);
+                obj.lcdPrintLn('M5Stack is now connected to MATLAB');
+                obj.m5Type = obj.getM5Type;
+                obj.lcdResolution = [obj.lcdGetHeight,obj.lcdGetWidth];
+                obj.batteryLevel = obj.powerGetBatteryLevel;
             catch e
                 throwAsCaller(e);
             end
