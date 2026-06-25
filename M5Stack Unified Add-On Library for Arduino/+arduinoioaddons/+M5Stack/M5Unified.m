@@ -1,10 +1,10 @@
-﻿%% Custom Arduino Add-On Library for the M5Unified Library by M5Stack
+%% Custom Arduino Add-On Library for the M5Unified Library by M5Stack
 % ==================================================================================================
 % M5Unified class
 % Copyright 2024, Eric Prandovszky, Greatlove Bariboloka 
 % Contact: prandov@yorku.ca, greatlebari@gmail.com
-% Version: 0.4.8
-% Date: Oct 24, 2024
+% Version: 0.4.9
+% Date: Nov 4, 2024
 % This .m file interacts with the M5UnifiedML.h C header file uploaded to an M5Stack device.
 % ==================================================================================================
 
@@ -12,26 +12,26 @@
 % This allows you to communicate with the integrated peripherals on M5Stack Devices(IMU,LCD,MIC,PMU,SPKR,etc.)
 
 % First initialize communication with the ESP32 inside the M5Stack. 
-% Example:
-%   esp = arduino('COM6','ESP32-WROOM-DevKitC','Libraries',{'I2C', 'M5Stack/M5Unified'},'Traceon', true);
+%   Example:
+%       esp = arduino('COM6','ESP32-WROOM-DevKitC','Libraries',{'I2C', 'M5Stack/M5Unified'},'Traceon', true);
 
 % Then initialize this unified library. 
-% Example:
-%   m5u= addon(esp,'M5Stack/M5Unified');
+%   Example:
+%       m5u= addon(esp,'M5Stack/M5Unified');
 
 % Use the 'arduino' object namespace to communicate with the ESP32.
-% Example:
-%  writeDigitalPin(esp,'D32',0); OR  esp.writeDigitalPin('D32',0);
-%  readVoltage(esp,'D33');       OR  esp.readVoltage('D33');
+%   Example:
+%       writeDigitalPin(esp,'D32',0); OR  esp.writeDigitalPin('D32',0);
+%       readVoltage(esp,'D33');       OR  esp.readVoltage('D33');
 
 % Use the 'addon' object namespace to communicate with the integrated peripherals.
-% Example:
-%   powerLED(m5u,255)  OR  m5u.powerLED(255);
+%   Example:
+%       powerLED(m5u,255)  OR  m5u.powerLED(255);
 
 %% References:
 % CLASS DESCRIPTION: https://www.mathworks.com/help/matlab/arduinoio-custom-arduino-libraries.html
-% CREATION STEPS: https://www.mathworks.com/help/matlab/supportpkg/create-custom-arduino-add-on-library.html
-% EXAMPLE: https://www.mathworks.com/help/matlab/supportpkg/create-code-to-write-a-string.html
+%   CREATION STEPS: https://www.mathworks.com/help/matlab/supportpkg/create-custom-arduino-add-on-library.html
+%   EXAMPLE: https://www.mathworks.com/help/matlab/supportpkg/create-code-to-write-a-string.html
 
 %% This File is Step 3 in the custom addon guide: Create a MATLAB Wrapper
 % The MATLAB add-on wrapper class that defines your library must inherit from matlabshared.addon.LibraryBase. 
@@ -43,7 +43,7 @@
 classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDisplay
     % M5Unified Summary of M5Unified
 
-    properties(Access = private, Constant = true, Hidden = true)
+    properties(Access = private, Constant = true)
     % Command ID's
     % Main Commands 0x00 to 0x1f
         M5Begin                 = 0x01    %1
@@ -81,10 +81,10 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         M5LcdDrawFastVLine      = 0x38    %3
         M5LcdDrawFastHLine      = 0x39    %4
         M5LcdDrawRectFOR        = 0x3A    
-        M5LcdFillRect           = 0X3A    %5
-        M5LcdDrawRect           = 0X3A    %6
-        M5LcdDrawRoundRect      = 0X3B    %7
-        M5LcdFillRoundRect      = 0X3B    %8
+        %M5LcdFillRect           = 0X3A    %5
+        %M5LcdDrawRect           = 0X3A    %6
+        %M5LcdDrawRoundRect      = 0X3B    %7
+        %M5LcdFillRoundRect      = 0X3B    %8
         M5LcdDrawCircleFO       = 0x3C
         % M5LcdDrawCircle                 %9
         % M5LcdFillCircle                 %10
@@ -138,19 +138,23 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
     % Touch     0x90    %TODO
     % Button    0xA0
         M5ButtonUpdate          = 0xA0
-    % Speaker   0xB0    [5]
-        SpeakerBegin            = 0xB0    %1 
-        SpeakerStop             = 0xB1    %2
-        SpeakerTone             = 0xB2    %3
-        SpeakerSetVolume        = 0xB3    %4
-        SpeakerPlayRaw          = 0xB7    %5
+    % Speaker   0xB0    [6]
+        M5SpeakerBegin          = 0xB0    %1 
+        M5SpeakerStop           = 0xB1    %2
+        M5SpeakerTone           = 0xB2    %3
+        M5SpeakerSetVolume      = 0xB3    %4
+        M5SpeakerGetVolume      = 0xB5    %5
+        M5SpeakerPlayRaw        = 0xB7    %6
     % Mic       0xC0    %TODO
         M5MicBegin              = 0xC0
     % pSRAM     0xD0    %TODO
-        % The Current ESP32DevKit-C supported in MATLAB does not include PSRAM
+        % The Current ESP32 supported in MATLAB does not include PSRAM (DevKit-C)
     % SD        0xE0    %TODO
     end
     properties(Access = public, Constant = true)
+        % lcdColor declares readyto-use color values for the LCD
+        % run m5u.lcdColor for the full list of color strings available eg.'BlACK'
+        % where m5u is the M5Unified addon object
         lcdColor = struct(...
             'BLACK'      ,   0x0000, ...      % RGB888   0,   0,   0 
             'NAVY'       ,   0x000F, ...      % RGB888   0,   0, 128 
@@ -274,7 +278,18 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % getBoardType-------------------------------------------------------------------------------------
         %M5.getBoard()
         function boardName = getM5Type(obj)
-        % boardName = getM5Type() gets the board type of the runtime environment. @return board type
+            % boardName = getM5Type(m5u) gets the board type of the runtime environment
+            %
+            % Syntax
+            %     boardName = getM5Type(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %
+            % Output Arguments
+            %     boardName - the board type of the runtime environment
+            %       character vector
             cmdID = obj.M5BoardType;             
             dataIn = 0x00;
             [dataOut, ~] = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -303,10 +318,22 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         end  
 % memoryStatus-------------------------------------------------------------------------------------
         function [heapSize, heapFree, psramSize, psramFree] = memoryStatus(obj)
-            % [heapSize, heapFree, psramSize, psramFree] = memoryStatus()
+            % [heapSize, heapFree, psramSize, psramFree] = memoryStatus(m5u)
             %    returns the size of the heap memory, amount of free heap,
             %    size of PSRAM, and amount of free PSRAM respectively
             %    Index the result to access each value.
+            %
+            % Syntax
+            %     [heapSize, heapFree, psramSize, psramFree] = memoryStatus(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %
+            % Output Arguments
+            %     [heapSize, heapFree, psramSize, psramFree] - an array of the Heap Size, 
+            %        Free Heap memory, PSRAM Size, and Free PSRAM
+            %       array of uint32 values
             cmdID = obj.M5GetMemoryStatus;
             val = sendCommand(obj, obj.LibraryName, cmdID, 0x00);
             val = uint8(val);
@@ -322,8 +349,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
  % delay------------------------------------------------------------------------------------- 
         %M5.delay(dur);
         function delay(obj, dur)
-        % delay(n) delays the M5 for a specified duration n between 0 and
-        %    255 ms, where n can also be a fraction.
+        % delay(m5u, dur) delays the M5 for a specified duration dur between 0 and
+        %    255 ms, where dur can also be a fraction.
+            % 
+            % Syntax
+            %     delay(m5u, dur)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     dur - duration of delay between 0 and 255
+            %       uint8
             durBytes = uint8(dur);
             cmdID = obj.M5Delay;
             dataIn = durBytes;
@@ -334,8 +370,15 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdBegin-------------------------------------------------------------------------------------
          % 1. M5.Display.begin();
          function lcdBegin(obj) %Not really needed since M5.begin calls this
-         % lcdBegin initializes the M5 lcd.
+         % lcdBegin(m5u) initializes the M5 lcd.
          % Implicitly called by M5.begin
+            % 
+            % Syntax
+            %     lcdBegin(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
             cmdID = obj.M5LcdBegin; 
             dataIn = 0x00; 
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -346,7 +389,14 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdClear-------------------------------------------------------------------------------------
         % 4. M5.Display.clear();
         function lcdClear(obj)
-        % lcdClear clears the M5 lcd
+        % lcdClear(m5u) clears the M5 lcd
+            % 
+            % Syntax
+            %     lcdClear(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
             cmdID = obj.M5LcdClear; 
             dataIn = 0x00; 
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -362,7 +412,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
         % 6. M5.Display.height()
         function height = lcdGetHeight(obj)
-        % height = lcdGetHeight() returns the height of the lcd
+        % height = lcdGetHeight(m5u) returns the height of the lcd
+        % 
+            % Syntax
+            %     height = lcdGetHeight(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            % Output Arguments
+            %     height - lcd height
+            %       uint16
             cmdID = obj.M5LcdgetHeight;
             % [dataOut, payloadSize] = sendCommand(obj, libName, commandID, dataIn, timeout)
             dataIn = 0x00;
@@ -372,7 +432,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
         % 7. M5.Display.width()
         function width = lcdGetWidth(obj) 
-        % width = lcdGetWidth() returns the width of the lcd
+        % width = lcdGetWidth(m5u) returns the width of the lcd
+            % 
+            % Syntax
+            %     width = lcdGetWidth(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            % Output Arguments
+            %     width - lcd width
+            %       uint16
             cmdID = obj.M5LcdgetWidth;
             % [dataOut, payloadSize] = sendCommand(obj, libName, commandID, dataIn, timeout)
             dataIn = 0x00;
@@ -382,7 +452,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % getDisplayCount-------------------------------------------------------------------------------------
         % 8. M5.getDisplayCount()
         function count = lcdGetDisplays(obj)
-        % count = lcdGetDisplays() returns the number of displays connected to the M5
+        % count = lcdGetDisplays(m5u) returns the number of displays connected to the M5
+        % 
+            % Syntax
+            %     count = lcdGetDisplays(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            % Output Arguments
+            %     count - number of displays connected to the M5
+            %       uint8
             cmdID = obj.M5LcdgetDispCount;
             % [dataOut, payloadSize] = sendCommand(obj, libName, commandID, dataIn, timeout)
             dataIn = 0x00;
@@ -396,8 +476,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
         % 11. M5.Display.setBrightness(brightness)
         function lcdBrightness(obj,brightness)
-        % lcdBrightness(brightness) adjusts the display backlight to the
+        % lcdBrightness(m5u, brightness) adjusts the display backlight to the
         % specified brightness between 0(Off) and 255 (Full)
+        % 
+            % Syntax
+            %     lcdBrightness(m5u, brightness)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     brightness - value to set the display backlight to. 0-255.
+            %       uint8
             cmdID = obj.M5LcdsetBrightness; 
             dataIn = uint8(brightness); 
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -412,23 +501,55 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdPrint-------------------------------------------------------------------------------------
         % 1. M5.Display.print(text);
         function lcdPrint(obj, string)
-        % lcdPrint(string) displays the specified string on the display a
+        % lcdPrint(m5u, string) displays the specified string on the display a
         %     the current cursor location
+        % 
+            % Syntax
+            %     lcdPrint(m5u, string)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     string - text to print to the display
+            %       string
             cmdID = obj.M5LcdPrint;
             sendCommand(obj,obj.LibraryName,cmdID,uint8(char(string))); 
         end
 % lcdPrintLn-------------------------------------------------------------------------------------
         % 2. M5.Display.println(text);
         function lcdPrintLn(obj,string)
-        % lcdPrintLn(string) displays the specified string on the display
+        % lcdPrintLn(m5u,string) displays the specified string on the display
         %     on a new line
+        % 
+            % Syntax
+            %     lcdPrintLn(m5u, string)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     string - text to print to the display
+            %       string
             cmdID = obj.M5LcdPrintLn; 
             sendCommand(obj,obj.LibraryName,cmdID,uint8(char(string))); 
         end
 % lcdDrawStr-------------------------------------------------------------------------------------
         % 3. M5.Display.drawString(text, x, y);
         function lcdDrawStr(obj,x,y,string) %Font and Colour Not Working
-        % lcdDrawStr(x,y,string) draws a character at position (x,y)
+        % lcdDrawStr(m5u,x,y,string) draws a character at position (x,y)
+        % 
+            % Syntax
+            %     lcdDrawStr(m5u,x,y,string)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x - horizontal cursor location
+            %       uint16
+            %     y - vertical cursor location
+            %       uint16
+            %     string - text to print to the display
+            %       string
+            cmdID = 0x2F; 
             xybytes = typecast(swapbytes([uint16(x), uint16(y)]),'uint8');
             text = uint8(char(string));
             xytextData = [xybytes,text];
@@ -439,9 +560,25 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 4. M5.Display.setTextColor(textColor)
         % 4. M5.Display.setTextColor(textColor, bgColor);
         function lcdTextColor(obj,textColor,bgColor)
-        % lcdTextColor(color) sets the text color and background color 
+        % lcdTextColor(m5u,color) sets the text color and background color 
         %    if only one argument is supplied, only text color will be set
         %    if two arguments are passed, both text and bg colors will be set
+        % 
+            % Syntax
+            %     lcdTextColor(m5u,color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     color - color to set
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdTextColor(m5u, 0x9A60); %brown
+            %     lcdTextColor(m5u, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
+            
             fgColor = uint16(textColor);
             if nargin == 2 %Only Text Color
                 fbColor = typecast(swapbytes(fgColor),'uint8');
@@ -457,18 +594,36 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdTextDatum-------------------------------------------------------------------------------------
         % 5. M5.Display.setTextDatum(textdatum_t::bottom_center);
         function lcdTextDatum(obj, datum)
-        % lcdTextDatum(datum) sets the text position reference datum
-            % 0:Top left (default)  1:Top Centre        2:Top Right
-            % 4:Middle Left         5:Middle Centre     6:Middle Right         
-            % 8:Bottom Left         9:Bottom Centre     10:Bottom Right
-            % 16:Baseline Left      17:Baseline Centre  18:Baseline Right
+        % lcdTextDatum(m5u, datum) sets the text position reference datum
+            % 
+            % Syntax
+            %     lcdTextDatum(m5u, datum)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     datum - value of reference datum. Possible Values:
+            %        0:Top left (default)  1:Top Centre        2:Top Right
+            %        4:Middle Left         5:Middle Centre     6:Middle Right         
+            %        8:Bottom Left         9:Bottom Centre     10:Bottom Right
+            %        16:Baseline Left      17:Baseline Centre  18:Baseline Right
+            %       uint8
             cmdID = obj.M5LcdTextDatum;
             sendCommand(obj,obj.LibraryName,cmdID,uint8(datum)); 
         end
 % lcdTextSize-------------------------------------------------------------------------------------
         % 6. M5.Display.setTextSize(size); %setTextSize is a float
         function lcdTextSize(obj, size)
-        % lcdTextSize(size) sets the text size, where size can be a fraction
+        % lcdTextSize(m5u,size) sets the text size, where size can be a fraction
+        % 
+            % Syntax
+            %     lcdTextSize(m5u, size)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     size - text size to set
+            %       uint8
             cmdID = obj.M5LcdTextSize;
             sendCommand(obj,obj.LibraryName,cmdID,uint8(size)); 
         end
@@ -476,16 +631,38 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % Working but needs improvement, the function is marked as depreciated in the M5Unified Library
         % 7. M5.Display.setTextFont(font);
         function lcdFont(obj, font)
-        % lcdFont(font) sets a font type from 0-8
-        %     Font Types: 0.ft_unknown   1.ft_glcd  2.ft_bmp    3. ft_rle  4. ft_gfx  
-        %                 5. ft_bdf      6. ft_vlw  7. ft_u8g2  8. ft_ttf 
+        % lcdFont(m5u,font) sets a font type from 0-8
+        %     Font Types: 0.ft_unknown   1.ft_glcd  2.ft_bmp  3. ft_rle  4. ft_gfx  
+        %     5. ft_bdf  6. ft_vlw  7. ft_u8g2  8. ft_ttf   7. 
+        % 
+            % Syntax
+            %     lcdFont(m5u,font)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     font - value representing font type. Possible Values: 0-8.
+            %        Font Types: 0.ft_unknown   1.ft_glcd  2.ft_bmp  3. ft_rle  4. ft_gfx  
+            %        5. ft_bdf  6. ft_vlw  7. ft_u8g2  8. ft_ttf   7.
+            %       uint8
             cmdID = obj.M5LcdTextFont;
             sendCommand(obj,obj.LibraryName,cmdID,uint8(font)); 
         end
 % lcdCursor-------------------------------------------------------------------------------------
         % 8. M5.Display.setCursor(x, y);
         function lcdCursor(obj, xPos, yPos)
-        % lcdCursor(xPos, yPos) sets the cursor at the positiion (xPos, yPos)
+        % lcdCursor(m5u, xPos, yPos) sets the cursor at the positiion (xPos, yPos)
+        % 
+            % Syntax
+            %     lcdCursor(m5u, xPos, yPos)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     xPos - horizontal cursor location
+            %       uint16
+            %     yPos - vertical cursor location
+            %       uint16
             xyPos = [uint16(xPos), uint16(yPos)];
             xyData = typecast(swapbytes(xyPos),'uint8');
             cmdID = obj.M5LcdSetCursor;
@@ -495,8 +672,27 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
         % 1. DrawPixel
         function lcdDrawPixel(obj, x, y, color)
-        % lcdDrawPixel(x, y, color) draws a point at position (x, y) in color
+        % lcdDrawPixel(m5u, x, y, color) draws a point at position (x, y) in color
         % if color is left empty, the function will use whatever color was used last
+        % 
+            % Syntax
+            %     lcdDrawPixel(m5u, x, y, color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x - horizontal cursor location
+            %       double
+            %     y - vertical cursor location
+            %       double
+            %     color - color to set as a hexadecimal or string.
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdDrawPixel(m5u, 1, 1, 0x9A60); %brown
+            %     lcdDrawPixel(m5u, 1, 12, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
             if nargin > 3
             xyc = [uint16(x), uint16(y),uint16(color)];
             else
@@ -510,8 +706,31 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdDrawLine-------------------------------------------------------------------------------------       
         % 2. M5.Display.drawLine(x1, y1, x2, y2, color);
         function lcdDrawLine(obj, x1, y1, x2, y2, color)
-        % lcdDrawLine(x1, y1, x2, y2, color) draws a line from point
+        % lcdDrawLine(m5u, x1, y1, x2, y2, color) draws a line from point
         %     (x1,y1) to point (x2,y2) in color
+        % 
+            % Syntax
+            %     lcdDrawLine(m5u, x1, y1, x2, y2, color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x1 - horizontal cursor location for the start point
+            %       double
+            %     y1 - vertical cursor location for the start point
+            %       double
+            %     x2 - horizontal cursor location for the end point
+            %       double
+            %     y2 - vertical cursor location for the end point
+            %       double
+            %     color - color to set as a hexadecimal or string.
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdDrawLine(m5u, 1, 1, 2, 2, 0x9A60); %brown
+            %     lcdDrawLine(m5u, 1, 1, 2, 2, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
             xyxyc = [uint16(x1), uint16(y1), uint16(x2), uint16(y2),uint16(color)];
             xyxycData = typecast(swapbytes(xyxyc),'uint8');
             cmdID = obj.M5LcdDrawLine;
@@ -524,9 +743,32 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdDrawFillRect-------------------------------------------------------------------------------------
          % 5. M5.Display.fillRect(x0, y0, w, h, color)
          function lcdDrawFillRect(obj, x, y, width, height, color)
-         % lcdDrawFillRect(x, y, width, height, color) draws a rectangle
+         % lcdDrawFillRect(m5u, x, y, width, height, color) draws a rectangle
          %     at point (x,y) with the specified width, height and color fill.
          %     if color is left empty, the function will use whatever color was used last
+         % 
+            % Syntax
+            %     lcdDrawFillRect(m5u, x, y, width, height, color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x - horizontal cursor location
+            %       double
+            %     y - vertical cursor location
+            %       double
+            %     width - width for rectangle
+            %       double
+            %     height - height for rectangle
+            %       double
+            %     color - color to set as a hexadecimal or string (optional)
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdDrawFillRect(m5u, 1, 1, 5, 5, 0x9A60); %brown
+            %     lcdDrawFillRect(m5u, 1, 1, 5, 5, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
             if nargin < 6
                 rectype = 0b0000001; %Bitmask bit2(colored),bit1(rounded),bit0(filled)
                 lcdDrawAllRectangle(obj, rectype, x, y, width, height) 
@@ -538,9 +780,32 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdDrawRect-------------------------------------------------------------------------------------
         % 6. M5.Display.drawRect(x0, y0, width, height, color)
         function lcdDrawRect(obj, x, y, width, height, color)
-         % lcdDrawRect(x, y, width, height, color) draws a rectangle
+         % lcdDrawRect(m5u, x, y, width, height, color) draws a rectangle
          %     at point (x,y) with the specified width, height and color.
-         %     if color is left empty, the function will use whatever color was used last        
+         %     if color is left empty, the function will use whatever color was used last
+         % 
+            % Syntax
+            %     lcdDrawRect(m5u, x, y, width, height, color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x - horizontal cursor location
+            %       double
+            %     y - vertical cursor location
+            %       double
+            %     width - width for rectangle
+            %       double
+            %     height - height for rectangle
+            %       double
+            %     color - color to set as a hexadecimal or string (optional)
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdDrawRect(m5u, 1, 1, 5, 5, 0x9A60); %brown
+            %     lcdDrawRect(m5u, 1, 1, 5, 5, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
             if nargin < 6
                 rectype = 0b0000000; %Bitmask bit2(colored),bit1(rounded),bit0(filled)
                 lcdDrawAllRectangle(obj, rectype, x, y, width, height) 
@@ -552,9 +817,34 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdDrawRoundRect-------------------------------------------------------------------------------------
         % 7. M5.Display.drawRoundRect(x0, y0, w, h, radius, color)
         function lcdDrawRoundRect(obj, x, y, width, height, radius, color)
-         % lcdDrawRoundRect(x, y, width, height, radius, color) draws a rounded rectangle
+         % lcdDrawRoundRect(m5u, x, y, width, height, radius, color) draws a rounded rectangle
          %     at point (x,y) with the specified width, height, radius and color.
          %     if color is left empty, the function will use whatever color was used last
+         % 
+            % Syntax
+            %     lcdDrawRoundRect(m5u, x, y, width, height, radius, color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x - horizontal cursor location
+            %       double
+            %     y - vertical cursor location
+            %       double
+            %     width - width for rectangle
+            %       double
+            %     height - height for rectangle
+            %       double
+            %     radius - radius for rectangle vertices
+            %       double
+            %     color - color to set as a hexadecimal or string (optional)
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdDrawRect(m5u, 1, 1, 5, 5, 3, 0x9A60); %brown
+            %     lcdDrawRect(m5u, 1, 1, 5, 5, 3, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
             if nargin < 7
                 rectype = 0b0000010; %Bitmask bit2(colored),bit1(rounded),bit0(filled)
                 lcdDrawAllRectangle(obj, rectype, x, y, width, height, radius) 
@@ -566,9 +856,34 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % lcdDrawFillRoundRect-------------------------------------------------------------------------------------
       % 8. M5.Display.fillRoundRect(x0, y0, w, h, radius, color)
         function lcdDrawFillRoundRect(obj, x, y, width, height, radius, color)
-         % lcdDrawFillRoundRect(x, y, width, height, radius, color) draws a rounded rectangle
+         % lcdDrawFillRoundRect(m5u, x, y, width, height, radius, color) draws a rounded rectangle
          %     at point (x,y) with the specified width, height, radius and color fill.
          %     if color is left empty, the function will use whatever color was used last
+         % 
+            % Syntax
+            %     lcdDrawFillRoundRect(m5u, x, y, width, height, radius, color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x - horizontal cursor location
+            %       double
+            %     y - vertical cursor location
+            %       double
+            %     width - width for rectangle
+            %       double
+            %     height - height for rectangle
+            %       double
+            %     radius - radius for rectangle vertices
+            %       double
+            %     color - color to set as a hexadecimal or string (optional)
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdDrawRect(m5u, 1, 1, 5, 5, 3, 0x9A60); %brown
+            %     lcdDrawRect(m5u, 1, 1, 5, 5, 3, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
             if nargin < 7
                 rectype = 0b0000011; %Bitmask bit2(colored),bit1(rounded),bit0(filled)
                 lcdDrawAllRectangle(obj, rectype, x, y, width, height, radius) 
@@ -580,10 +895,33 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
          % 9. M5.Display.drawCircle(x, y, r, fill[true/false],color[rgb565])
           function lcdDrawCircle(obj, x, y, radius, fill, color)
-         % lcdDrawCircle(x, y, radius, fill, color) draws a circle at point (x,y)
+         % lcdDrawCircle(m5u, x, y, radius, fill, color) draws a circle at point (x,y)
          %     with the specified color fill.
          %     fill = 0(false) or 1(true)
-         %     if color is left empty, the function will use whatever color was last set               
+         %     if color is left empty, the function will use whatever color was last set
+         % 
+            % Syntax
+            %     lcdDrawCircle(m5u, x, y, radius, fill, color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x - horizontal cursor location
+            %       double
+            %     y - vertical cursor location
+            %       double
+            %     radius - radius for circle
+            %       double
+            %     fill - indicate if circle should be filled with color: 0(false) or 1(true)
+            %       double
+            %     color - color to set as a hexadecimal or string (optional)
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdDrawCircle(m5u, 1, 1, 5, 1, 0x9A60); %brown
+            %     lcdDrawCircle(m5u, 1, 1, 5, 1, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
             xyrfc = [uint16(x), uint16(y), uint16(radius)];
             xyrfc = [typecast(swapbytes(xyrfc),'uint8'),uint8(fill)];
             if nargin > 5
@@ -595,9 +933,30 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
          % 10. M5.Display.fillCircle(x, y, radius, color);
          function lcdFillCircle(obj, x, y, radius, color)
-         % lcdFillCircle(x, y, radius, color) draws a filled circle at point (x,y)
+         % lcdFillCircle(m5u, x, y, radius, color) draws a filled circle at point (x,y)
          %     with the specified color fill.
-         %     if color is left empty, the function will use whatever color was last set            
+         %     if color is left empty, the function will use whatever color was last set
+         % 
+            % Syntax
+            %     lcdFillCircle(m5u, x, y, radius, color)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     x - horizontal cursor location
+            %       double
+            %     y - vertical cursor location
+            %       double
+            %     radius - radius for circle
+            %       double
+            %     color - color to set as a hexadecimal or string (optional)
+            %       uint16 | string
+            % 
+            % Examples
+            %     lcdFillCircle(m5u, 1, 1, 5, 0x9A60); %brown
+            %     lcdFillCircle(m5u, 1, 1, 5, m5u.lcdColor.BROWN); %brown
+            % 
+            % Run m5u.lcdColor for preset colors
              fill = true;
              if nargin > 4
              lcdDrawCircle(obj, x, y, radius, fill, color);
@@ -661,7 +1020,6 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
         % 9. M5.Display.drawPngUrl("http://example.com/url.png", 0, 0);
 %-------------------------------------------------------------------------------------      
-
 % displayJPG -------------------------------------------------------------------------------------
 % NOT WORKING/UNTESTED
 % Image must be broken up into multiple 720 byte packets and buffered before calling drawjpg
@@ -742,8 +1100,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % M5PowerLED------------------------------------------------------------------------------------
         % 6. M5.Power.setLed(uint8_t brightness)
         function powerLED(obj, brightness)
-        % powerLED(brightness) sets the intensity of the power LED
+        % powerLED(m5u, brightness) sets the intensity of the power LED
         %     brightness = 0(off) to 255(Full Intensity)
+        % 
+            % Syntax
+            %     powerLED(m5u, brightness)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     brightness - value of LED intensity to set. 0-255.
+            %       double
             cmdID = obj.M5PwrSetLED;
             dataIn = uint8(brightness);
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -751,7 +1118,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % M5PwrOff------------------------------------------------------------------------------------
         % 7. M5.Power.powerOff(void);
         function powerOff(obj)
-        % powerOff turn all M5 power off.
+        % powerOff(m5u) turn all M5 power off
             cmdID = obj.M5PwrOff;
             dataIn = 0x00;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -766,10 +1133,20 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 %-------------------------------------------------------------------------------------
         % 10. M5.Power.lightSleep(std::uint64_t micro_seconds = 0, bool touch_wakeup = true);
 % GetBatteryLevel------------------------------------------------------------------------------------
-        % 11. int32 = M5.Power.getBatteryLevel(void);
+        % 11. int32 = M5.Power.getBatteryLevel();
         function battLevel = powerGetBatteryLevel(obj)
-        % battLevel = powerGetBatteryLevel returns the current battery level
-        %   battLevel = 0% to 100%
+        % battLevel = powerGetBatteryLevel(m5u) returns the current battery level
+        %
+            % Syntax
+            %     battLevel = powerGetBatteryLevel(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %
+            % Output Arguments
+            %     battLevel - the current battery level
+            %       uint32
             cmdID = obj.M5PwrGetBatteryLvl;
             dataIn = 0x00;
             dataOut = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -787,6 +1164,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 16. int16_t = M5.Power.getBatteryVoltage(void);
         function battVoltage = powerGetBatteryVoltage(obj)
         % battVoltage = powerGetBatteryVoltaget() returns the M5 battery voltage in mV            
+        %
+            % Syntax
+            %     battVoltage = powerGetBatteryVoltaget(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %
+            % Output Arguments
+            %     battVoltage - the amount of voltage in the M5 battery
+            %       uint16
             cmdID = obj.M5PwrGetBatteryVolt;
             dataIn = 0x00;
             dataOut = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -795,7 +1183,18 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % GetBatteryCurrent------------------------------------------------------------------------------------
         % 17.  int32_t = M5.Power.getBatteryCurrent(void);
         function battCurrent = powerGetBatteryCurrent(obj)
-        % battCurrent = powerGetBatteryCurrent() returns current flow in mA
+        % battCurrent = powerGetBatteryCurrent() returns M5 battery current flow in mA
+        %
+            % Syntax
+            %     battCurrent = powerGetBatteryCurrent(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %
+            % Output Arguments
+            %     battVoltage - the amount of current in the M5 battery
+            %       uint32
         % positive value charging/negative value discharging 
             cmdID = obj.M5PwrGetBatteryCurr;
             dataIn = 0x00;
@@ -805,8 +1204,19 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % M5PwrGetKeyState------------------------------------------------------------------------------------
         % 18.  uint8_t = M5.Power.getKeyState(void);
         function keystate = powerGetKeyState(obj)
-        % keystate = powerGetKeyState() returns whether the power key was pressed
-        %    keystate = 0=none / 1=long pressed / 2=short clicked / 3=both
+        % keystate = powerGetKeyState(m5u) returns whether the power key was pressed
+        %
+            % Syntax
+            %     keystate = powerGetKeyState(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %
+            % Output Arguments
+            %     keystate - the state of the power key. Possible values:
+            %        0=none / 1=long pressed / 2=short clicked / 3=both
+            %       uint8
             cmdID = obj.M5PwrGetKeyState;
             dataIn = 0x00;
             keystate = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -814,8 +1224,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % vibrationMotor(obj, level)----------------------------------------------------------------------
         % 19. M5.Power.setVibration(uint8_t level);
         function vibrationMotor(obj, level)
-        % vibrationMotor(level) sets the motor to the specified intensity
+        % vibrationMotor(m5u, level) sets the motor to the specified intensity
         %     level = 0 to 255
+        %
+            % Syntax
+            %     vibrationMotor(m5u, level)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     level - vibration intensity of the motor. 0-255.
+            %       uint8
             cmdID = obj.M5PwrSetVibration;
             dataIn = uint8(level);
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
@@ -827,9 +1246,21 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % buttonUpdate-------------------------------------------------------------------------------
     % Working, but not reliably
         function [pwrButton,buttonA,buttonB,buttonC] = buttonUpdate(obj)
-            % [pwrButton,buttonA,buttonB,buttonC] = buttonUpdate(obj) checks whether
+            % [pwrButton,buttonA,buttonB,buttonC] = buttonUpdate(m5u) checks whether
             %     the Power Button, Button A, Button B or Button C were pressed. 
             %     Index for the button whose state you want to check.
+            % Syntax
+            %     [pwrButton,buttonA,buttonB,buttonC] = buttonUpdate(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %
+            % Output Arguments
+            %     [pwrButton,buttonA,buttonB,buttonC] - an array of the states of the 
+            %        Power Button, Button A, Button B and Button C.
+            %        Possible states: {'Idle','Held', 'Clicked', 'Pressed', 'Released', 'Multiple Clicks'}
+            %       array of character vectors
                     cmdID = obj.M5ButtonUpdate;
                     dataIn = 0x00;
                     % Print out the button names with their state information
@@ -854,15 +1285,15 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
 % SpeakerBegin-------------------------------------------------------------------------------------
         % 1. M5.Speaker.begin();
         function speakerBegin(obj) %Not really needed since M5.begin calls this
-            cmdID = obj.SpeakerBegin;
+            cmdID = obj.M5SpeakerBegin;
             dataIn = 0x00;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
 % SpeakerStop-------------------------------------------------------------------------------------        
         % 2. M5.Speaker.stop();
         function speakerStop(obj)
-        % speakerStop() Stops speaker output
-            cmdID = obj.SpeakerStop; 
+        % speakerStop(m5u) Stops speaker output
+            cmdID = obj.M5SpeakerStop; 
             dataIn = 0x00; 
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
@@ -870,11 +1301,25 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 3. M5.Speaker.tone(float frequency, uint32_t duration = UINT32_MAX, 
             % int channel = -1, bool stop_current_sound = true));
         function speakerTone(obj, freq, dur, channel, stop_current_sound)
-        % speakerTone(freq, dur, channel, stop_current_sound) plays a tone
-        %     freq - Tone frequency (Hz) 0 to 4,294,967,295. Can be a fraction
-        %     dur - Tone duration in milliseconds. 0 to 4,294,967,295. Can be a fraction
-        %     channel - Virtual channel: 0-7
-        %     stop_current_sound - 0(No) or 1(Yes)
+        % speakerTone(m5u, freq, dur, channel, stop_current_sound) plays a tone
+        %     at the specifiec frequency, channel and for the duration.
+            % 
+            % Syntax
+            %     speakerTone(m5u, freq, dur, channel, stop_current_sound)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     freq - Tone frequency (Hz) 0 to 4,294,967,295. Can be a fraction
+            %       double
+            %     dur - Tone duration in milliseconds. 0 to 4,294,967,295. Can be a fraction
+            %       double
+            %     channel - Virtual channel to play the tone at: 0-7
+            %       uint16
+            %     stop_current_sound - indicate whether to stop the current tone. 0(No) or 1(Yes)
+            %       uint16
+            % Example
+            %     speakerTone(m5u, 1000, 2000, 1, 1);
 
             % Convert arguments to byte arrays
             freqBytes = num2hex(freq);
@@ -893,29 +1338,63 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
                 counter = counter+1;
             end
 
-            cmdID = obj.SpeakerTone;
+            cmdID = obj.M5SpeakerTone;
             dataIn = toneData;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
         end
 % SpeakerSetVolume-------------------------------------------------------------------------------------
-        % 4. M5.Speaker.setVolume(int direction, int diff);
-            %direction: 1=up or 0=down
-            %diff: how much increment/decrement to apply to volume
-        function speakerSetVolume(obj, dir, diff)
-        % speakerSetVolume(dir, diff) sets the volume of the speaker
-        %     dir - 0(reduce) or 1(increase)
-        %     diff - 0(None) to 255(Full)
+        % 4. M5.Speaker.setVolume(int vol);
+            %vol: volume to set the speaker at
+        function speakerSetVolume(obj, vol)
+        % speakerSetVolume(m5u, vol) sets the volume of the speaker
+        %     vol - 0(None) to 255(Full)
+        %     Volume inputs > 255 will remain at 255. < 0 will remain at 0.
+        % 
+            % Syntax
+            %     speakerSetVolume(m5u, vol)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            %     vol - Speaker volume. 0-255.
+            %       uint8
+
+            min_volume = 0;
+            max_volume = 255;
+            
+            % Check for out of bounds volume
+            if vol < min_volume
+                vol = 0;
+            elseif vol > max_volume
+                vol = 255;
+            end
 
             % Convert arguments to byte arrays
-            dirBytes = typecast(int8(dir), 'uint8');
-            diffBytes = typecast(int8(diff), 'uint8');
-            
-            % Concatenate byte arrays
-            setVolData = [dirBytes, diffBytes];
-        
-            cmdID = obj.SpeakerSetVolume;
-            dataIn = setVolData;
+            volBytes = cast(vol, 'uint8');
+            disp(volBytes)
+            cmdID = obj.M5SpeakerSetVolume;
+            dataIn = volBytes;
             sendCommand(obj, obj.LibraryName, cmdID, dataIn);
+        end
+
+% SpeakerGetVolume-------------------------------------------------------------------------------------
+        % 4. M5.Speaker.speakerGetVolume();
+        function vol = speakerGetVolume(obj)
+        % speakerGetVolume(m5u) returns the volume of the speaker
+        % 
+            % Syntax
+            %     speakerGetVolume(m5u)
+            %
+            % Input Arguments
+            %     m5u - Arduino hardware connection with M5Unified addon
+            %       object
+            % Output Arguments
+            %     vol - current speaker volume. 0-255.
+            %       uint8
+            cmdID = obj.M5SpeakerGetVolume; %5
+            dataIn = 0x00;
+            [dataOut, ~] = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
+            vol = cast(dataOut,'uint8');
         end
 %% M5 Microphone Class
 % micBegin-----------------------------------------------------------------------------------
@@ -927,8 +1406,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
     end %of Public Methods
 
     methods(Access = private)
-        %% M5UnifiedSelfDistruct-------------------------------------------------------------------------------------
-        function M5UnifiedSelfDistruct(~)
+        function M5UnifiedDelete(~)
 
             % Remove arduino and M5Unified objects from the workspace
             
