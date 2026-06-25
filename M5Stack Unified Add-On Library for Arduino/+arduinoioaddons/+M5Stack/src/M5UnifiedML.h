@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file M5UnifiedML.h
  *
  * Class definition for M5Stack class that wraps APIs of the M5Unified library.
@@ -6,20 +6,22 @@
  * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast
  * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com
  * Contact: prandov@yorku.ca, greatlebari@gmail.com
- * Version: 0.4.8
- * Date: Oct 24, 2024
+ * Version: 0.4.9
+ * Date: Nov 4, 2024
  * This .h file interacts with the M5Unified.m class in MATLAB.
  */
 
 /*
 The M5 Unified library provides access to the built-in hardware of M5Stack controllers. The library functionality 
 is available through the m5 namespace and includes the following:
-    0: Begin
-    1: LCD display access, fonts, and graphical primitives: This is done in conjunction with M5GFX.
-    2: Touchscreen and hardware button access: This allows you to interact with the deviceâ€™s touchscreen and hardware buttons.
-    3: Speaker and microphone access: This gives you control over the deviceâ€™s speaker and microphone.
-    4: Power and battery charging control: This lets you manage the deviceâ€™s power and battery charging.
-    5: IMU: This provides access to the deviceâ€™s inertial measurement unit: accelerometer, gyroscope, and magnetometer.
+    0: Base: Commands for congiguration and info on the connected M5Stack: Board Type, Memory.
+    1: LCD: Controls the LCD configuration, text, and graphical primitives: This is done in conjunction with M5GFX.
+    2: IMU: Access to the device’s inertial measurement unit: accelerometer, gyroscope, and magnetometer if present.
+    3: Log: Logging features built into the M5Unified Library. 
+    4: Power: This lets you manage the device’s power and battery charging.
+    5: RTC: Connect to and control the M5Stack's Real Time Clock.
+    6: Touchscreen and Button: Aallows you to interact with the device’s touchscreen and hardware or software buttons.
+    7: Speaker and Microphone: Access the device’s speaker and microphone.
 */
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #include "LibraryBase.h"
@@ -147,6 +149,8 @@ is available through the m5 namespace and includes the following:
 #define SpeakerStop             0xB1  
 #define SpeakerTone             0xB2
 #define SpeakerSetVolume        0xB3
+#define SpeakerSetChVolume      0xB4
+#define SpeakerGetVolume        0xB5
 #define SpeakerPlayRaw          0xB7
 //Mic       0xC0
 #define MicConfig               0xC0
@@ -175,6 +179,7 @@ is available through the m5 namespace and includes the following:
 //  .##..##..##......##..##..##..##..##..##..............##....##....##..##.
 //  .#####...######..#####....####....####............####.....##....##..##.
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//const char M5UNIFIED4ML_VERSION[]   PROGMEM = "v0.4.9";
 const char MSG_M5Begin[]            PROGMEM = "M5 Begin\n";
 const char MSG_GetBrdType[]         PROGMEM = "M5 GetBoardType\n";
 const char MSG_MemUseChk[]          PROGMEM = "M5 MemoryStatusChk\n";
@@ -239,6 +244,7 @@ const char MSG_SpeakerBegin[]       PROGMEM = "M5 Speaker Begin\n";
 const char MSG_SpeakerStop[]        PROGMEM = "M5 Speaker Stop\n";
 const char MSG_SpeakerTone[]        PROGMEM = "M5 Speaker Tone\n";
 const char MSG_SpeakerSetVolume[]   PROGMEM = "M5 Speaker Set Volume\n";
+const char MSG_SpeakerGetVolume[]   PROGMEM = "M5 Speaker Get Volume\n";
 const char MSG_SpeakerPlayRaw[]     PROGMEM = "M5 Speaker Play Raw\n";
 //Mic
 const char MSG_MicConfig[]          PROGMEM = "M5 Mic Config\n";
@@ -328,6 +334,8 @@ public:
         M5.Display.println("using the: M5Unified Add-On Library");
         M5.Display.print("IO Server Version: ");
         M5.Display.println(BOARD_IO_VERSION);
+        M5.Display.print("M5Unified Library Version: ");
+        M5.Display.println(" 0.4.9");
         M5.Display.print("Libraries: ");
         M5.Display.println(LIBNAMES);
         //Allocate for a PNG 
@@ -465,7 +473,7 @@ public:
                 cfg.internal_mic  = true;  // default=true. use internal microphone.
                 cfg.external_imu  = false;  // default=false. use Unit Accel & Gyro.
                 cfg.external_rtc  = false;  // default=false. use Unit RTC.
-                cfg.led_brightness = 64;   // default= 0. system LED brightness (0=off / 255=max) (â€» not NeoPixel)
+                cfg.led_brightness = 64;   // default= 0. system LED brightness (0=off / 255=max) (※ not NeoPixel)
 
                 M5.begin(cfg);                        // initialize M5 device
             */
@@ -1656,30 +1664,29 @@ display.setTextSize(2);
                 }
             // case SpeakerSetVolume           0xB3
                 case SpeakerSetVolume: {
-                    uint8_t direction = dataIn[0]; //1=up or 0=down
-                    uint8_t diff = dataIn[1]; //difference
+                    uint8_t volume = dataIn[0]; //volume to set speaker at
 
-                    uint8_t v = M5.Speaker.getVolume();
-                    
-                    if(direction == 1) {
-                    // Turn volume up
-                        v += diff;
-                        if (v < max_volume) { M5.Speaker.setVolume(v); }
-                    }else if(direction == 0){
-                    // Turn volume down
-                        v -= diff;
-                        if (v >= min_volume) { M5.Speaker.setVolume(v); }
-                    }else{
-                        debugPrint(MSG_SpeakerSetVolume);
-                    }
+                    M5.Speaker.setVolume(volume);
                     
                     // Print debug string
                     debugPrint(MSG_SpeakerSetVolume);
                     // Send response
                     sendResponseMsg(cmdID, 0,0);
                     break;
-                }    
-                
+                } 
+           
+            // case SpeakerGetVolume           0xB5
+                case SpeakerGetVolume: {
+                    uint8_t v = M5.Speaker.getVolume();
+                    byte* response = reinterpret_cast<byte*>(&v);
+
+                    // Print debug string
+                    debugPrint(MSG_SpeakerGetVolume);
+                    // Send response
+                    sendResponseMsg(cmdID, response, 1);
+                    break;
+                } 
+
             // case SpeakerPlayRaw           0xB7
                 case SpeakerPlayRaw: {
                     // TODO
