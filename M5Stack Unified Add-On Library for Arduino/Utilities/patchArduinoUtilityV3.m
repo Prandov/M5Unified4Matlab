@@ -27,10 +27,27 @@ disp(['Running: ' mfilename '.m'])
     preExistingVars = who;
 % Define the path to the file
     filePath = which('arduinoio.internal.Utility');
+    % Stop with a clear installation error before reading a missing Utility.m.
+    if isempty(filePath)
+        error('M5Stack:UtilityMissing', 'Install the MATLAB Support Package for Arduino Hardware first.');
+    end
     [folderPath, fileName, extension] = fileparts(filePath);
     fprintf(' -Attempting to update %s\n',[fileName extension]);
 % Read the content of the file
     backupFileContents = fileread(filePath);
+    % Mark generated output so a later run can avoid applying the same patch twice.
+    patchMarker = '% M5Unified Utility patch for add-on 0.5';
+    % This checks the marker only; it does not validate the installed patch contents.
+    if contains(backupFileContents, patchMarker)
+        fprintf(' -Utility.m already has the 0.5 patch.\n');
+        return
+    end
+    % Do not combine earlier patch code with this revision; require a clean original.
+    if contains(backupFileContents, '% OLD ') || contains(backupFileContents, 'patched using patchArduinoUtility')
+        error('M5Stack:ExistingUtilityPatch', ...
+            ['Utility.m already has an earlier patch. Restore the original for this ' ...
+             'support-package release before applying 0.5; do not layer patches.']);
+    end
     newFileContents = backupFileContents; %Make a copy to compare output
     backupFileName = [fileName,'OriginalUnpatched.m'];
 %% Lines to comment out
@@ -112,7 +129,7 @@ disp(['Running: ' mfilename '.m'])
         '                   ''Core2 / Tough'',            ''m5stack-core2'',        16777216,   8388608,    6815744; ...',...
         '                   ''CoreS3 / CoreS3 SE'',       ''m5stack-cores3''        16777216,   8388608,    6815744; ...',...
         '                   ''StickC / StickC Plus'',     ''m5stick-c'',            4194304,    0,          1310720; ...',...
-        '                   ''StickC Plus 2'',            ''m5stick-c-plus2'',      8388608,    0,          3145728; ...',...   %ESP32-PICO-V3-02
+        '                   ''StickC Plus 2'',            ''m5stick-c-plus2'',      8388608,    2097152,    3145728; ...',...   %ESP32-PICO-V3-02; 2 MB Quad PSRAM
         '                   ''StickS3'',                  ''m5stack-sticks3'',      8388608,    8388608,    3145728; ...',...   %ESP32-S3-PICO-1-N8R8
         '                   ''CoreInk'',                  ''m5stack-coreink'',      4194304,    0,          1310720; ...',...
         '                   ''Paper'',                    ''m5paper'',              16777216,   8388608     6815744; ...',...
@@ -122,18 +139,21 @@ disp(['Running: ' mfilename '.m'])
         '                   ''Atom PSRAM / Echo'',        ''m5stack-atom'',         4194304,    4194304,    1310720; ...',... 
         '                   ''Atom S3 / Lite'',           ''m5stack-atoms3'',       8388608,    0,          3145728; ...',...   %ESP32-S3 SOC 
         '                   ''Stamp Pico'',               ''pico32'',               4194304,    0,          1310720; ...',...
-        '                   ''Stamp C3 RISC-V'',          ''esp32c3'',              4194304,    0,          1310720; ...',...   %ESP32-C3 (No Official MATLAB Support)
+        '                   ''Stamp C3 RISC-V'',          ''esp32c3'',              4194304,    0,          1310720; ...',...   %ESP32-C3
         '                   ''Stamp S3 / S3A / Dial'',    ''m5stack_stamps3'',      8388608,    0,          3145728; ...',...
         '                   ''Cardputer / Capsule'',      ''m5stack_stamps3'',      8388608,    0,          3145728;...',...
         '                   ''DinMeter / AirQ'',          ''m5stack_stamps3'',      8388608,    0,          3145728;...',...
-        '                   ''M5StampP4X / TAB5'',        ''esp32p4'',              16777216,   16777216,   6815744};',...      %ESP32-P4NRW32 (No Official MATLAB Support)
+        '                   ''M5StampP4X / TAB5'',        ''esp32p4'',              16777216,   16777216,   6815744};',...      %ESP32-P4NRW32
+        '               % Keep all listed boards selectable; hardware testing so far covers Core and Core2 only.',...
         '               try %Create display list from the Device Names column with Core2 as the default',...
         '                   selection = listdlg(''PromptString'',''Select M5Stack board variant:'', ...',...
         '                       ''SelectionMode'',''single'',''ListString'',boardOptions(:,1), ...',...
         '                       ''InitialValue'',4,''ListSize'',[180 340]);',...
-        '                   if isempty(selection);selection = 1;end % If user cancels, fall back to Core',...
+        '                   % Stop on cancellation rather than silently choosing a different board.',...
+        '                   if isempty(selection);error(''M5Stack:SelectionCancelled'',''Board selection cancelled.'');end',...
         '               catch % If UI not available (e.g., headless)',...
-        '                   selection = 4; %default to Core2',...
+        '                   % Require explicit selection instead of silently defaulting when the dialog fails.',...
+        '                   error(''M5Stack:BoardSelectionRequired'',''Select a board interactively before building.'');',...
         '               end %of list selection',...
         '               buildInfo.BoardName = boardOptions{selection,2};',...
         '               buildInfo.MemorySize = boardOptions{selection,5};',...
@@ -162,12 +182,21 @@ disp(['Running: ' mfilename '.m'])
         newFileContents = insertLines(CodeSectionG,newFileContents);
 
 %% Save the output
-    % Check to see if any changes were made.
-    if length(newFileContents)~=length(backupFileContents)
+    % Identify the saved patch for the repeat-run check above.
+    newFileContents = [patchMarker newline newFileContents];
+    % Compare full contents so equal-length edits are detected too.
+    if ~strcmp(newFileContents, backupFileContents)
         %Copy the original file to a backup called [fileName,'OriginalUnpatched.m'].
-        movefile (filePath, fullfile(folderPath,backupFileName), 'f'); % added a force because one some users got an error in osx.
+        % Preserve an existing backup; its support-package version must be checked before restoring.
+        if ~isfile(fullfile(folderPath,backupFileName))
+            copyfile(filePath, fullfile(folderPath,backupFileName));
+        end
         % Write the modified content to the original filename.
         fid = fopen(filePath, 'w');
+        % Report an open failure before attempting to write through an invalid file handle.
+        if fid < 0
+            error('M5Stack:UtilityWriteFailed', 'Cannot open Utility.m for writing; original backup retained.');
+        end
         fwrite(fid, newFileContents);
         fclose(fid);
         fprintf(' -%s modified successfully.',[fileName extension]);
@@ -190,6 +219,8 @@ totalLines = size(oldLines,2);
         NumIdenticalLines = length(posStr);
         %Check if the line is unique
         if NumIdenticalLines>1             
+            % Stop before saving rather than commenting out an ambiguous target.
+            error('M5Stack:UnsupportedUtility', 'Ambiguous patch target: %s', oldLines{i});
             fprintf('  --Error commenting out line %d, Multiple matches found for: ''%s...''\n',i,(oldLines{i}(1:min(30, end))))
         elseif NumIdenticalLines == 1
             %Check if the line was already commented.
@@ -202,6 +233,8 @@ totalLines = size(oldLines,2);
                 linesCommented = linesCommented+NumIdenticalLines;
             end
         else % Error: No Match found
+            % Stop before saving a partial patch when the expected source has changed.
+            error('M5Stack:UnsupportedUtility', 'Missing patch target: %s', oldLines{i});
             fprintf('  --Error commenting out line %d, no match found.\n',i)
         end
 
@@ -221,6 +254,8 @@ linesInserted = 0;
             posPrevStr = strfind(modifiedContent, CodeSection{i-1});
             NumIdenticalLines = length(posPrevStr);
             if NumIdenticalLines>1
+                % Stop before saving rather than inserting code at an ambiguous location.
+                error('M5Stack:UnsupportedUtility', 'Ambiguous insertion target: %s', previousLineofCode);
                 fprintf('  --No Code inserted. Multiple matches for line %d: ''%s...'' found \n inserted lines must be unique',i-1,strOut(1:min(20, end)))
             elseif NumIdenticalLines == 1
             %PrevStrSz = length(CodeSection{i-1});
@@ -237,6 +272,8 @@ linesInserted = 0;
                 fprintf('  --No Code inserted. Identical text to line %d: ''%s...'' found.\n',i,strOut(1:min(30, end)))
             end
             else
+                 % Stop before saving a partial patch when an insertion anchor is missing.
+                 error('M5Stack:UnsupportedUtility', 'Missing insertion target: %s', previousLineofCode);
                  fprintf('  --No Code inserted. Could not find the previous line: %s...\n',strOut(1:min(20, end)))
             end
     end
