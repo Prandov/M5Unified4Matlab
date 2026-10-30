@@ -1,0 +1,4 @@
+# MATLAB autosave backups
+*.asv
+# Installed File Exchange artifacts; not source packaging configuration
+/M5Stack Unified Add-On Library for Arduino/resources/
