@@ -51,6 +51,12 @@ Use the 'addon' object namespace to communicate with the M5Stack components.
 
 ```M5Unified.lcdPrint('Hello');```
 
+## Contributors and Development
+
+Developed by Eric Prandovszky in collaboration with [Greatlove Bariboloka (@Lebari)](https://github.com/Lebari). Greatlove contributed to the MATLAB/C++ add-on implementation, testing, and usage documentation, including extensive improvements to function comments.
+
+Development began in a separate repository using the standard MATLAB-generated ArduinoServer as a starting point. We opened that project in PlatformIO to develop the C++ implementation, making it straightforward to compile, upload, and test on the hardware. The MATLAB interface was developed directly in MATLAB and synchronized periodically with the C++ implementation. The components needed for the custom Arduino add-on were then brought together in this repository for distribution.
+
 ## Notes
 
 * This Library is in development and more features will be added over time.  
