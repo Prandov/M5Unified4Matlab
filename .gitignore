@@ -2,3 +2,5 @@
 *.asv
 # Installed File Exchange artifacts; not source packaging configuration
 /M5Stack Unified Add-On Library for Arduino/resources/
+# MATLAB published class documentation; generate explicitly when needed
+/M5Stack Unified Add-On Library for Arduino/+arduinoioaddons/+M5Stack/html/
