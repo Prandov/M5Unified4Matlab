@@ -315,6 +315,8 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
                     boardName = 'M5 Stack CoreInk';
                 case 7
                     boardName = 'M5 Paper';
+                case 8
+                    boardName = 'M5 Tough';
                 case 9
                     boardName = 'M5 Station';
                 case 10
