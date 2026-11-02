@@ -3,8 +3,8 @@
 % M5Unified class
 % Copyright 2024, Eric Prandovszky, Greatlove Bariboloka 
 % Contact: prandov@yorku.ca, greatlebari@gmail.com
-% Version: 0.4.9.2
-% Date: Oct 30, 2026
+% Version: 0.5
+% Date: Nov 2, 2026
 % This .m file interacts with the M5UnifiedML.h C header file uploaded to an M5Stack device.
 % ==================================================================================================
 
@@ -64,8 +64,6 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         M5LcdsetRotation        = 0x29    %10
         M5LcdsetBrightness      = 0x2A    %11
         M5LcdsetColorDepth      = 0x2B    %12
-        M5LcdAllocateMem        = 0x2C    %13
-        M5LcdFreeMem            = 0x2D    %14
     % LCD Text      [8]
         M5LcdPrint              = 0x2E    %1
         M5LcdPrintLn            = 0x2F    %2
@@ -108,9 +106,10 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         M5LcdFillAffine         = 0x46    %24
         M5LcdDrawGradientLine   = 0x47    %25
     % LCD Images
-        M5LcdDrawDrawBMP        = 0x48
-        M5LcdDrawDrawJPG        = 0x49
-        M5LcdDrawDrawPNG        = 0x50
+        % Historical image command IDs; disabled pending the image rework.
+        % M5LcdDrawDrawBMP      = 0x48
+        % M5LcdDrawDrawJPG      = 0x49
+        % M5LcdDrawDrawPNG      = 0x50
     % IMU       0x50    %TODO
     % Log       0x60    %TODO
     % Power     0x70    [20]
@@ -293,12 +292,17 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
             cmdID = obj.M5BoardType;             
             dataIn = 0x00;
             [dataOut, ~] = sendCommand(obj, obj.LibraryName, cmdID, dataIn);
-            BoardType = cast(dataOut,'uint8');
-            switch BoardType
+            if numel(dataOut) ~= 1
+                error('M5Stack:BoardResponse', 'Expected one board identifier byte.');
+            end
+            boardID = double(dataOut);
+            % M5GFX boards.hpp IDs, not indices into the build menu's boardOptions.
+            % Build profiles can cover several variants sharing a runtime board ID.
+            switch boardID
                 case 0
                     boardName = 'Unknown';
                 case 1
-                    boardName = 'M5 Stack';
+                    boardName = 'M5 Stack'; % Core / Basic / Gray / Fire / Bala variants
                 case 2
                     boardName = 'M5 Stack Core 2';
                 case 3
@@ -307,13 +311,58 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
                     boardName = 'M5 Stick-C Plus';
                 case 5
                     boardName = 'M5 Stick-C Plus 2';
+                case 6
+                    boardName = 'M5 Stack CoreInk';
+                case 7
+                    boardName = 'M5 Paper';
+                case 9
+                    boardName = 'M5 Station';
                 case 10
                     boardName = 'M5 Stack Core S3';
+                case 11
+                    boardName = 'M5 Atom S3';
+                case 12
+                    boardName = 'M5 Dial';
+                case 13
+                    boardName = 'M5 DinMeter';
+                case 14
+                    boardName = 'M5 Cardputer';
+                case 15
+                    boardName = 'M5 AirQ';
                 case 17
                     boardName = 'M5 Stack Core S3 SE';
+                case 19
+                    boardName = 'M5 Paper S3';
+                case 22
+                    boardName = 'M5 Tab5';
+                case 26
+                    boardName = 'M5 Stick S3';
+                case 128
+                    boardName = 'M5 Atom Lite';
+                case 129
+                    boardName = 'M5 Atom PSRAM';
+                case 133
+                    boardName = 'M5 Stamp Pico';
+                case 134
+                    boardName = 'M5 Stamp C3';
+                case 135
+                    boardName = 'M5 Stamp C3U';
+                case 136
+                    boardName = 'M5 Stamp S3';
+                case 137
+                    boardName = 'M5 Atom S3 Lite';
+                case 139
+                    boardName = 'M5 Capsule';
+                case 141
+                    boardName = 'M5 Atom Matrix';
+                case 142
+                    boardName = 'M5 Atom Echo';
                 otherwise
-                    boardName = 'Other Unidentified board type';
+                    boardName = sprintf('Unknown M5Unified board (%u)', boardID);
             end
+            % Future dynamic lookup: enable these lines to use Utilities/boardNameFromId.m.
+            % addpath(fullfile(fileparts(fileparts(fileparts(mfilename('fullpath')))), 'Utilities'));
+            % boardName = boardNameFromId(boardID);
             fprintf('The board type is %s.\n', boardName)
         end  
 % memoryStatus-------------------------------------------------------------------------------------
@@ -998,6 +1047,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
          % ?. M5.Display.writeFillRectPreclipped((x<<2)+xpos,ypos,1,1,TFT_BLACK);  
          
 %% LCD Images [9]
+% Reference only: image commands and buffer allocation are disabled for v0.5.
 %-------------------------------------------------------------------------------------
         % 1. M5.Display.drawJpg(jpg_image, ~0u, 0, 0, display.width(), display.height(), 0, 0, 0.0f, -1.0f);
         % 1. M5.Display.drawJpg(const uint8_t *jpg_data, size_t jpg_len, uint16_t x = 0, uint16_t y = 0, uint16_t maxWidth = 0, uint16_t maxHeight = 0, uint16_t offX = 0, uint16_t offY = 0, jpeg_div_t scale = JPEG_DIV_NONE);
@@ -1019,65 +1069,7 @@ classdef M5Unified <  matlabshared.addon.LibraryBase & matlab.mixin.CustomDispla
         % 8. M5.Display.drawBmpUrl("http://example.com/url.bmp", 0, 0);
 %-------------------------------------------------------------------------------------
         % 9. M5.Display.drawPngUrl("http://example.com/url.png", 0, 0);
-%-------------------------------------------------------------------------------------      
-% displayJPG -------------------------------------------------------------------------------------
-% NOT WORKING/UNTESTED
-% Image must be broken up into multiple 720 byte packets and buffered before calling drawjpg
-        function displayJPG(obj) 
-            % display.drawJpg(jpg_image, ~0u, 0, 0, display.width(), display.height(), 0, 0, 0.0f, -1.0f);
-            % drawJpg(const uint8_t *jpg_data, size_t jpg_len, uint16_t x = 0, uint16_t y = 0, uint16_t maxWidth = 0, uint16_t maxHeight = 0, uint16_t offX = 0, uint16_t offY = 0, jpeg_div_t scale = JPEG_DIV_NONE);
-            cmdID = obj.M5DrawJPG;
-            imData = uint8(fileread('yorku-logo.jpg'));
-            sendCommand(obj,obj.LibraryName,cmdID,imData);
-
-            % % from ai:
-            % % Read the .jpg file
-            % imageData = imread('yorku-logo.jpg');
-            % % Convert the image data into a byte vector
-            % byteVector = reshape(imageData, [], 1);
-            % % Find the length of the byte vector
-            % vectorLength = length(byteVector);
-            % % Convert vectorLength to a 16-bit integer
-            % int16VectorLength = int16(vectorLength);
-            % % Convert the 16-bit integer to two 8-bit bytes
-            % byte1 = bitshift(int16VectorLength, -8);
-            % byte2 = bitand(int16VectorLength, 255);
-            % % Add the first two bytes to the front of the byte vector
-            % newByteVector = cat(1, byte1, byte2, byteVector);
-        end
-% drawBitmap-------------------------------------------------------------------------------------
-%NOT WORKING/UNTESTED
-        function drawBitmap(obj, bitmap)
-            %  Write a 320x240 RGB bitmap using multiple send commands
-            cmdID = obj.M5DrawBitmap;
-            % Convert the bitmap to a byte vector
-            byteVector = reshape(bitmap, [], 1);
-            % Calculate the number of send commands needed
-            nPackets = ceil(length(byteVector) / maxPacketSize);
-            % Loop through each send command
-            for i = 1:nPackets
-                % Calculate the start and end indices for the current command
-                startIndex = (i - 1) * maxPacketSize + 1;
-                endIndex = min(i * maxPacketSize, length(byteVector));
-
-                % Get the data for the current command, add the packet number and total number of packets ot the beginning
-                data = [typecast(uint16(i), 'uint8'), typecast(uint16(nPackets), 'uint8'), byteVector(startIndex:endIndex)];
-
-                % Send the command to the M5Stack display
-                
-                sendCommand(obj, obj.LibraryName, cmdID, data);
-            end
-        end
-% drawPNG-------------------------------------------------------------------------------------
-%NOT WORKING - Yorku-iconXS.png is 491 bytes, but doesn't buffer/render correctly
-         function lcdDrawPNG(obj)
-            fileID = fopen('York-iconXS.png', 'rb');
-            pngData = fread(fileID, inf, '*uint8');
-            %pngData = uint8(fileread('York-iconXS.png'));
-            cmdID = obj.M5LcdDrawDrawPNG;
-            sendCommand(obj,obj.LibraryName,cmdID,byteVector); 
-         end
-
+%-------------------------------------------------------------------------------------
 
 %% M5 Real Time Clock Class-------------------------------------------------------------------------------------
         % M5.Rtc.isEnabled();

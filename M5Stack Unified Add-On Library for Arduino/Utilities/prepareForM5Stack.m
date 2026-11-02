@@ -16,9 +16,8 @@
 % 7. Try out the one of the connectToM5Stack* scripts to get started.
 
 disp('Running: prepareForM5Stack.m')
-% patchArduinoUtility2, changes how add-on libraries are included. (Change is currently disabled to try and reproduce the original error).
-% patchArduinoUtility2 supresses the ESP32 Boot Button dialog when using M5Unified libraries, and auto installs esp32 board & servo support.
-patchArduinoUtilityV2
+%patchArduinoUtilityVx: Makes varoious changes to Utility.m to improve how MATLAB connects to M5Stack  
+patchArduinoUtilityV3
 % InstallArduinoLibs will change to the Arduino Libraries directory if it finds a duplicate libaray so you can troubleshoot.
 % InstallArduinoLibs can be configured to install any library, M5Unified, M5GFX and AdafruitNeopixel are the defaults.
 installArduinoLibsFromGitHub 

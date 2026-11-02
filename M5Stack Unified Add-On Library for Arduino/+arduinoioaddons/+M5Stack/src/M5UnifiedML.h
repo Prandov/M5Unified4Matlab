@@ -6,8 +6,8 @@
  * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast
  * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com
  * Contact: prandov@yorku.ca, greatlebari@gmail.com
- * Version: 0.4.9.2
- * Date: Oct 30, 2026
+ * Version: 0.5
+ * Date: Nov 2, 2026
  * This .h file interacts with the M5Unified.m class in MATLAB.
  */
 
@@ -52,8 +52,6 @@ is available through the m5 namespace and includes the following:
 #define M5LcdsetRotation        0x29    //10
 #define M5LcdsetBrightness      0x2A    //11
 #define M5LcdsetColorDepth      0x2B    //12
-#define M5LcdAllocateMem        0x2C    //13
-#define M5LcdFreeMem            0x2D    //14
 //LCD Text [8]
 #define M5LcdPrint              0x2E    //1
 #define M5LcdPrintLn            0x2F    //2
@@ -96,9 +94,10 @@ is available through the m5 namespace and includes the following:
 #define M5LcdFillAffine         0x46    //24
 #define M5LcdDrawGradientLine   0x47    //25
 // LCD Images
-#define M5LcdDrawBmp            0x48
-#define M5LcdDrawJpg            0x49
-#define M5LcdDrawPng            0x50
+// Historical command IDs only; disabled pending the image rework.
+// #define M5LcdDrawBmp         0x48
+// #define M5LcdDrawJpg         0x49
+// #define M5LcdDrawPng         0x50
 //IMU       0x50  //29 functions
 //Log       0x60
 #define M5LogSetLevel           0x60
@@ -222,11 +221,8 @@ const char MSG_M5LcdDrawRoundRect[] PROGMEM = "M5 Display: Draw Round Rect\n";
 const char MSG_M5LcdFillRoundRect[] PROGMEM = "M5 Display: Fill Round Rect\n";
 const char MSG_M5LcdDrawFastHLine[] PROGMEM = "M5 Display: Draw Fast HLine\n";
 const char MSG_M5LcdDrawFastVLine[] PROGMEM = "M5 Display: Draw Fast VLine\n";
-const char MSG_M5LcdAllocateMem[]   PROGMEM = "M5 Display: Allocate Memory\n";
 //LCD Images
-const char MSG_M5LcdDrawJPG[]       PROGMEM = "M5 Display .jpg\n";
-const char MSG_M5LcdDrawPNG[]       PROGMEM = "M5 Display .png\n";
-const char MSG_M5LcdDrawBmp[]       PROGMEM = "M5 Display .bmp\n";
+// const char MSG_M5LcdDrawBmp[]    PROGMEM = "M5 Display .bmp\n";
 //Touch
 const char MSG_M5TouchBegin[]       PROGMEM = "M5 Touch Begin\n";
 const char MSG_M5TouchGetCount[]    PROGMEM = "M5 Touch Get Count\n";
@@ -295,14 +291,6 @@ static int16_t prev_h[record_length];
 static size_t rec_record_idx = 2;
 static size_t draw_record_idx = 0;
 static int16_t *rec_data;
-//PSRAM testing
-int n_elements = 1000;
-unsigned char * acc_data_all;
-
-// Global variables to store image data
-    byte* pngData;
-    std::vector<uint8_t> imageData; 
-
 // Saves floating point number and byte array in same memory location
 typedef union{
     float number;
@@ -335,18 +323,9 @@ public:
         M5.Display.print("IO Server Version: ");
         M5.Display.println(BOARD_IO_VERSION);
         M5.Display.print("M5Unified Library Version: ");
-        M5.Display.println(" 0.4.9");
+        M5.Display.println(" 0.5");
         M5.Display.print("Libraries: ");
         M5.Display.println(LIBNAMES);
-        //Allocate for a PNG 
-            pngData = (byte*)malloc(720);
-        //Try to get PSRAM working
-        acc_data_all = (unsigned char *) ps_malloc (n_elements * sizeof (unsigned char)); 
-        if(psramInit()){
-        M5.Display.println("\nPSRAM is correctly initialized");
-        }else{
-        M5.Display.println("PSRAM not available");
-        }
         
     }
 public:
@@ -644,24 +623,6 @@ public:
                 debugPrint(MSG_M5LcdsetBrightness);
                 // Send response
                 sendResponseMsg(cmdID, 0, 0);
-                break;
-            }
-            // case M5LcdAllocateMem 0x22
-            // Allocate memory to receive image data 
-            case M5LcdAllocateMem: {
-                // Extract the image size from dataIn
-                uint16_t imageSize = (dataIn[0] << 8) | dataIn[1];
-
-                // Allocate memory for the image data
-                //byte* imageData = new byte[imageSize];
-                imageData.resize(imageSize);
-
-                // Print debug string
-                debugPrint(MSG_M5LcdAllocateMem);
-
-                // Send response
-                sendResponseMsg(cmdID, 0, 0);
-
                 break;
             }
 //----------------------------------------------------------------------------------------------------------------------
@@ -1058,144 +1019,21 @@ display.setTextSize(2);
 //  \________|\______/ \_______/       \______|\__|     \__|\__|  \__| \______/ \________| \______/ 
 //----------------------------------------------------------------------------------------------------------------------
 
-           /* To allocate memory for bmpBuffer in C++, you have a few options:
-            1. Using new (Dynamic Memory Allocation):
-                bmpBuffer = new byte[desiredSize];
-            2. Using std::vector (Recommended):
-                std::vector<byte> bmpBuffer; // Declare a vector
-                bmpBuffer.resize(desiredSize); // Later, allocate memory:
-            3. Using malloc and realloc (C-style)
-                bmpBuffer = static_cast<byte*>(malloc(desiredSize * sizeof(byte)));
-                // Later, reallocate if needed:
-                bmpBuffer = static_cast<byte*>(realloc(bmpBuffer, newDesiredSize * sizeof(byte))); 
-           */
-
-           /*for the case M5LCDdrawBitmap, the data received in packtes over multiple commands, the first 2 bytes of 
-           dataIn are the packet number, the second 2 bytes are the total number of packtes. store the data in a buffer 
-           until it's the final packet, then display the image*/
-        /*
-        // case M5LcdDrawBmp: {
-            static byte* bmpBuffer = nullptr;
-            static uint16_t packetSize = 0;
-            static uint16_t bmpPacketNumber = 0;
-            static uint16_t bmpTotalPackets = 0;
-
-            // Extract the packet number and total packets from dataIn
-            uint16_t packetNumber = (dataIn[0] << 8) | dataIn[1];
-            uint16_t totalPackets = (dataIn[2] << 8) | dataIn[3];
-
-            // If it's the first packet, allocate memory for the buffer
-            if (packetNumber == 0) {
-                packetSize = payload_size - 4;
-                bmpBuffer = new byte[packetSize * totalPackets];
-                bmpPacketNumber = 0;
-                bmpTotalPackets = totalPackets;
-                
-                imageData.resize(packetSize * totalPackets); // Resize imageData to match the total data received
-            }
-
-            // Copy the data to the buffer
-            memcpy(bmpBuffer + (packetSize * packetNumber), dataIn + 4, payload_size - 4);
-
-            // If it's the final packet, display the image
-            if (packetNumber == totalPackets - 1) {
-                // Copy the data from bmpBuffer to imageData
-                memcpy(imageData.data(), bmpBuffer, packetSize * totalPackets);
-
-                // Draw the BMP image
-                M5.Display.drawBmp(imageData.data(), x0, y0, packetSize * totalPackets);
-
-                // Print debug string
-                debugPrint(MSG_M5LcdDrawBmp);
-
-                // Send response
-                sendResponseMsg(cmdID, 0, 0);
-
-                // Free the buffer memory
-                delete[] bmpBuffer;
-                bmpBuffer = nullptr;
-                packetSize = 0;
-                bmpPacketNumber = 0;
-                bmpTotalPackets = 0;
-            }
-
-            break; */
-            case M5LcdDrawBmp: {
-                    
-                    static uint16_t packetSize = payload_size - 4; //renamed from bmpBufferSize
-                    static uint16_t bmpPacketNumber = 0;
-                    static uint16_t bmpTotalPackets = 0;
-                    static uint16_t imageSize = 0;
-
-                    // Extract the packet number and total packets from dataIn
-                    uint16_t packetNumber = (dataIn[0] << 8) | dataIn[1];
-                    uint16_t totalPackets = (dataIn[2] << 8) | dataIn[3];
-
-                    // If it's the first packet, allocate memory for the buffer
-                    if (packetNumber == 0) {
-                        imageData.resize(imageSize);                       
-                    }
-                    // Copy the data to the imageData buffer
-                    memcpy(imageData.data() + (packetSize * packetNumber), dataIn + 4, payload_size - 4);
-                    // If it's the final packet, display the image
-                    if (packetNumber == totalPackets - 1) {
-                        // Draw the BMP image
-                        M5.Display.drawBmp(reinterpret_cast<const uint8_t*>(imageData.data()), packetSize * totalPackets);
-
-                        // Print debug string
-                        debugPrint(MSG_M5LcdDrawBmp);
-
-                        // Send response
-                        sendResponseMsg(cmdID, 0, 0);
-
-                        // Clear the imageData buffer
-                        imageData.clear();
-                        }
-
-                    break;
-                }
-            
-            
-            // case M5DisplayJPG 0x49
-            case M5LcdDrawJpg: {
-             // display.drawJpg(jpg_image, ~0u, 0, 0, display.width(), display.height(), 0, 0, 0.0f, -1.0f);
-             // drawJpg(const uint8_t *jpg_data, size_t jpg_len, uint16_t x = 0, uint16_t y = 0, uint16_t maxWidth = 0, uint16_t maxHeight = 0, uint16_t offX = 0, uint16_t offY = 0, jpeg_div_t scale = JPEG_DIV_NONE);
-                byte* jpgData = dataIn;
-                size_t dataInSize = payload_size;
-                // Extract the size of dataIn
-                    //uint16_t jpgLength = (dataIn[0] << 8) | dataIn[1];
-                // Increment the dataIn pointer to point to the start of jpgData
-                    //dataIn += 2;
-                uint16_t x = 0;
-                uint16_t y = 0;
-                uint16_t maxWidth = 0; 
-                uint16_t maxHeight = 0; 
-                uint16_t offX = 0;
-                uint16_t offY = 0;
-                //jpeg_div_t scale = JPEG_DIV_NONE;
-                float scale = 1.0f;
-                  
-                // Draw the JPG image
-                M5.Display.drawJpg(dataIn, dataInSize, x, y, maxWidth, maxHeight, offX, offY, scale);
-                // Print debug string
-                debugPrint(MSG_M5LcdDrawJPG);
-                // Send response
-                sendResponseMsg(cmdID, 0, 0);
-                break;
-
-            }
-            case M5LcdDrawPng: {
-                pngData = dataIn;
-                // Draw the PNG image
-                M5.Display.drawPng(pngData, payload_size, 130, 50);
-                  // Print debug string
-                debugPrint(MSG_M5LcdDrawPNG);
-                // Send response
-                sendResponseMsg(cmdID, 0, 0);
-                break;
-            }
-
 //----------------------------------------------------------------------------------------------------------------------
+// Image-handler framework only: no buffers, allocation, or rendering in v0.5.
+// case M5LcdDrawBmp: {
+//     // TODO: validate and assemble image data before calling M5.Display.drawBmp.
+//     break;
+// }
+// case M5LcdDrawJpg: {
+//     // TODO: validate and assemble image data before calling M5.Display.drawJpg.
+//     break;
+// }
+// case M5LcdDrawPng: {
+//     // TODO: validate and assemble image data before calling M5.Display.drawPng.
+//     break;
+// }
+
 // $$$$$$\ $$\      $$\ $$\   $$\ 
 // \_$$  _|$$$\    $$$ |$$ |  $$ |
 //   $$ |  $$$$\  $$$$ |$$ |  $$ |
