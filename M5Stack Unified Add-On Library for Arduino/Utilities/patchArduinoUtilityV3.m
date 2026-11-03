@@ -21,35 +21,47 @@
 % By: Eric Prandovszky
 % prandov@yorku.ca
 % September 23 ,2026
+% Updated: November 3, 2026
 % ==================================================================================================
+function patchArduinoUtilityV3(filePath)
+% Optional filePath supports testing on a disposable copy of Utility.m.
 disp(['Running: ' mfilename '.m'])
-% Check workspace contents for later cleanup
-    preExistingVars = who;
 % Define the path to the file
+if nargin < 1
     filePath = which('arduinoio.internal.Utility');
+end
     % Stop with a clear installation error before reading a missing Utility.m.
     if isempty(filePath)
         error('M5Stack:UtilityMissing', 'Install the MATLAB Support Package for Arduino Hardware first.');
     end
     [folderPath, fileName, extension] = fileparts(filePath);
     fprintf(' -Attempting to update %s\n',[fileName extension]);
-% Read the content of the file
-    backupFileContents = fileread(filePath);
-    % Mark generated output so a later run can avoid applying the same patch twice.
-    patchMarker = '% M5Unified Utility patch for add-on 0.5';
-    % This checks the marker only; it does not validate the installed patch contents.
-    if contains(backupFileContents, patchMarker)
-        fprintf(' -Utility.m already has the 0.5 patch.\n');
-        return
-    end
-    % Do not combine earlier patch code with this revision; require a clean original.
-    if contains(backupFileContents, '% OLD ') || contains(backupFileContents, 'patched using patchArduinoUtility')
-        error('M5Stack:ExistingUtilityPatch', ...
-            ['Utility.m already has an earlier patch. Restore the original for this ' ...
-             'support-package release before applying 0.5; do not layer patches.']);
-    end
-    newFileContents = backupFileContents; %Make a copy to compare output
     backupFileName = [fileName,'OriginalUnpatched.m'];
+    backupPath = fullfile(folderPath, backupFileName);
+    % Reuse the backup for this support-package release, or preserve Utility.m once.
+    sourcePath = backupPath;
+    if ~isfile(backupPath)
+        sourcePath = filePath;
+    end
+    backupFileContents = fileread(sourcePath);
+    if contains(backupFileContents, '% OLD ') || contains(backupFileContents, 'patched using')
+        error('M5Stack:OriginalUtilityRequired', ...
+            '%s is already patched. Supply the original for this support-package release.', sourcePath);
+    end
+    createdBackup = false;
+    if ~isfile(backupPath)
+        [status, message] = movefile(filePath, backupPath, 'f');
+        if ~status
+            error('M5Stack:UtilityBackupFailed', 'Cannot rename Utility.m to %s: %s', backupPath, message);
+        end
+        createdBackup = true;
+    end
+try
+    % Save a clean Utility.m before attempting any modifications, including on repeat runs.
+    writeUtilityFile(filePath, backupFileContents);
+    fprintf(' -Unmodified Utility.m saved from %s.\n', backupFileName);
+    patchMarker = '% M5Unified Utility patch for add-on 0.5';
+    newFileContents = backupFileContents; %Make a copy to compare output
 %% Lines to comment out
 % Lines need to be unique within the file to prevent unintended changes.
     oldLines = {...
@@ -182,32 +194,71 @@ disp(['Running: ' mfilename '.m'])
         newFileContents = insertLines(CodeSectionG,newFileContents);
 
 %% Save the output
-    % Identify the saved patch for the repeat-run check above.
+    % Identify generated output; repeat runs still rebuild from the backup.
     newFileContents = [patchMarker newline newFileContents];
     % Compare full contents so equal-length edits are detected too.
-    if ~strcmp(newFileContents, backupFileContents)
-        %Copy the original file to a backup called [fileName,'OriginalUnpatched.m'].
-        % Preserve an existing backup; its support-package version must be checked before restoring.
-        if ~isfile(fullfile(folderPath,backupFileName))
-            copyfile(filePath, fullfile(folderPath,backupFileName));
-        end
-        % Write the modified content to the original filename.
-        fid = fopen(filePath, 'w');
-        % Report an open failure before attempting to write through an invalid file handle.
-        if fid < 0
-            error('M5Stack:UtilityWriteFailed', 'Cannot open Utility.m for writing; original backup retained.');
-        end
-        fwrite(fid, newFileContents);
-        fclose(fid);
+    if ~isfile(filePath) || ~strcmp(newFileContents, fileread(filePath))
+        % Only install a new Utility.m after every patch section succeeds.
+        writeUtilityFile(filePath, newFileContents);
         fprintf(' -%s modified successfully.',[fileName extension]);
     else
         fprintf(' -NO changes were made to %s',[fileName extension]);
     end
 
-% Clean up variables created by this script before exiting
-varsNow = who; % list current workspace variables
-varsToClear = setdiff(varsNow, preExistingVars); % Determine which variables are new
-clear(varsToClear{:}, 'varsNow','varsToClear'); % Clear all variables created during this script execution
+catch exception
+    % A failed first patch must not leave MATLAB without its original Utility.m.
+    if createdBackup && ~isfile(filePath)
+        [restored, message] = copyfile(backupPath, filePath, 'f');
+        if ~restored
+            warning('M5Stack:UtilityRestoreFailed', ...
+                'Restore %s to %s manually: %s', backupPath, filePath, message);
+        end
+    end
+    rethrow(exception);
+end
+end
+
+function writeUtilityFile(filePath, contents)
+% Write a new file beside Utility.m; never truncate the current file in place.
+temporaryPath = [tempname(fileparts(filePath)) '.m'];
+temporaryCleanup = onCleanup(@() deleteTemporaryUtility(temporaryPath)); %#ok<NASGU>
+[fid, message] = fopen(temporaryPath, 'w');
+if fid < 0
+    error('M5Stack:UtilityWriteFailed', ...
+        'Cannot open %s for writing: %s. Check access permissions or file locks; original backup retained.', filePath, message);
+end
+fileCleanup = onCleanup(@() closeUtilityFile(fid)); %#ok<NASGU>
+% Detect incomplete writes rather than reporting a successful patch.
+count = fwrite(fid, contents);
+if count ~= numel(contents)
+    error('M5Stack:UtilityWriteFailed', 'Incomplete write to %s; restore the original backup.', filePath);
+end
+closeStatus = fclose(fid);
+if closeStatus ~= 0
+    error('M5Stack:UtilityWriteFailed', 'Cannot finish writing %s; verify or restore the original backup.', filePath);
+end
+clear fileCleanup
+% Confirm the saved text before replacing Utility.m; write/close errors are checked above.
+if ~strcmp(fileread(temporaryPath), contents)
+    error('M5Stack:UtilityWriteFailed', 'Saved contents do not match the requested text; existing Utility.m and backup retained.');
+end
+[status, message] = movefile(temporaryPath, filePath, 'f');
+if ~status
+    error('M5Stack:UtilityWriteFailed', 'Cannot install the new %s: %s. Original backup retained.', filePath, message);
+end
+end
+
+function closeUtilityFile(fid)
+if ~isempty(fopen(fid))
+    fclose(fid);
+end
+end
+
+function deleteTemporaryUtility(filePath)
+if isfile(filePath)
+    delete(filePath);
+end
+end
 
 function modifiedContent = commentOutLines(oldLines,comment,modifiedContent)
 % Comment out lines
@@ -227,7 +278,7 @@ totalLines = size(oldLines,2);
             posLnSt = find(modifiedContent(1:posStr(1)-1) == newline, 1, 'last'); % find the beginning of the line for the string you are looking for.
             spaceb4Str = strtrim(modifiedContent(posLnSt:posStr(1)));
             if startsWith(spaceb4Str,'%')
-                fprintf('  --Error commenting out line %d, ''%s...'' is already commented out.\n',i,(oldLines{i}(1:min(30, end))));
+                error('M5Stack:UnsupportedUtility', 'Patch target is already commented out: %s', oldLines{i});
             else
                 modifiedContent = insertBefore(modifiedContent, oldLines{i},comment);
                 linesCommented = linesCommented+NumIdenticalLines;
