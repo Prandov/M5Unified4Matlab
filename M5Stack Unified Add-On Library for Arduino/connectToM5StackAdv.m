@@ -5,6 +5,7 @@
 % Contact: prandov@yorku.ca
 % Version 1
 % Oct 11, 2024
+% Updated: November 3, 2026
 % Script to help get connected to the M5Stack.
 % ==================================================================================================
 
@@ -14,9 +15,12 @@ serialportlist
 %% Manually enter the serial port name you want from the returned list (or leave blank to use a selection window)
 myM5SerialPort = ''; 
 
-if ~exist('M5serialport','var');M5SerialPort ='';end % Check for a previously selected port.
+if ~exist('M5SerialPort','var');M5SerialPort ='';end % Check for a previously selected port.
 if ~isempty(myM5SerialPort);M5SerialPort = myM5SerialPort;end; clear myM5SerialPort; % Check for a manually defined port.
 if isempty(M5SerialPort);serialPortSelectionWindow;end % Call the port selection window.
+if isempty(M5SerialPort)
+    error('M5Stack:PortSelectionCancelled', 'Serial port selection cancelled.');
+end
 
 %% Define the M5Stack's ESP32 processor as an Arduino: arduino(Port, Board, Libraries, Other Flags)
 % Port is [defined above]
@@ -35,20 +39,20 @@ if isempty(M5SerialPort);serialPortSelectionWindow;end % Call the port selection
     %m5u.begin %begin must be called to start the library. !Now called automatically
     m5u.lcdPrintLn('Hello')
 
-%% Neopixels
+%% Neopixel Connection
 % Neopixels (programmable RGB LED's) on the M5Stack are accessed through the Adafruit NeoPixel library MATLAB Add-On, and are initialized separately.
+% M5Stack Core2 for AWS has 10 neopixels connected to D25.
     if ~exist('neopix','var') 
-        neopix = addon(esp32, 'Adafruit/NeoPixel', 'D25', 10, 'NeoPixelType', 'GRB'); %M5Stack Core2 for AWS has 10 neopixels connected to D25.
+        neopix = addon(esp32, 'Adafruit/NeoPixel', 'D25', 10, 'NeoPixelType', 'GRB'); 
     end
  % Traffic Light Example:
- % writeColor(neopixels, 1, 'green');
- % writeColor(neopixels, 3, 'yellow');
- % writeColor(neopixels, 5, 'red');
+ writeColor(neopix, 1, 'green');
+ writeColor(neopix, 3, 'yellow');
+ writeColor(neopix, 5, 'red');
 
  %% Functions
 % Function to create a serial port selection window.
    function serialPortSelectionWindow
-        %arduinoio.arduinoio.setup.internal.HardwareInterface.getAvailableArduinoPorts(~, oldPort)
         usbdev = matlab.hwmgr.internal.hwconnection.USBDeviceEnumerator;
         ports = getSerialPorts(usbdev);
         % Remove the repeated port addresses from the ports list. See g2539001.
@@ -56,20 +60,23 @@ if isempty(M5SerialPort);serialPortSelectionWindow;end % Call the port selection
         if isempty(ports)
             error('No USB serial devices detected. Please check your connection.');
         else
-            ports = ['select a value',ports];
+            ports = [{'select a value'}; ports(:)];
             % Create a figure for the dropdown
             hFig = figure('Position', [100, 100, 300, 150], 'MenuBar', 'none', 'Name', 'Select Serial Port', 'NumberTitle', 'off');
             hDropdown = uicontrol('Style', 'popupmenu','String', ports, 'Position', [50, 70, 200, 30]);
-            hButton = uicontrol('Style', 'pushbutton', 'String', 'Select','Position', [100, 30, 100, 30], 'Callback', @(src, event) selectPort(hDropdown, hFig));
+            uicontrol('Style', 'pushbutton', 'String', 'Select','Position', [100, 30, 100, 30], 'Callback', @(src, event) selectPort(hDropdown, hFig));
             uiwait(hFig); 
-            %clear usbDev hFig hDropdown hButton selectedPort;
         end
     end
     % Function to handle the serial port selection.
     function selectPort(dropdown, fig)
         selectedIndex = dropdown.Value;
+        if selectedIndex == 1
+            warning('M5Stack:InvalidSerialPort', 'Select a serial port rather than the placeholder.');
+            return
+        end
         selectedPort = dropdown.String{selectedIndex};
         disp(['Selected Serial Port: ', selectedPort]);
-        assignin('base', 'M5serialport', selectedPort); % Assign to base workspace.
-        close(fig); % Close the figure.
+        assignin('base', 'M5SerialPort', selectedPort); % Assign to base workspace.
+        close(fig); % Close the figure and resume the script.
     end
