@@ -32,8 +32,8 @@
     end
 % 4. Prompt the user for a numerical input
     choice = input("\nEnter the number of the port you want to select: ");
-% 5. Validate the input and select the port
-    if isempty(choice) || choice < 1 || choice > length(mySerialPorts) || mod(choice, 1) ~= 0
+% 5. Direct Validation: Check if the choice exists in the list of valid indices
+    if ~ismember(choice, 1:length(mySerialPorts))
         error("Invalid selection. Please run the script again and enter a valid number.");
     else
         M5SerialPort = mySerialPorts(choice);
