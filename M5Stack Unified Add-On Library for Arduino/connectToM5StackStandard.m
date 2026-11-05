@@ -1,11 +1,11 @@
-%% connectToM5StackBasic.m
+%% connectToM5StackStandard.m
 % ==================================================================================================
 % Create a connection to the M5Stack in your MATLAB workspace
 % Copyright 2024, Eric Prandovszky
 % Contact: prandov@yorku.ca
 % Version 2
 % Oct 11, 2024
-% Updated: November 3, 2026
+% Updated: November 5, 2026
 % Script to help get connected to the M5Stack.
 % ==================================================================================================
 
@@ -22,7 +22,7 @@
 % 1. Get the list of available serial ports
     mySerialPorts = serialportlist;
 % 2. Check if any ports are available
-    if isempty(mySerialPorts)
+    if isempty(mySerialPorts) % GPT6A
         error('M5Stack:NoSerialPorts', 'No serial ports detected. Check the device connection.');
     end
 % 3. Display the ports to the user with a numbering system
@@ -31,9 +31,9 @@
         fprintf("[%d] %s\n", i, mySerialPorts(i));
     end
 % 4. Prompt the user for a numerical input
-    choice = input("\nEnter the number of the port you want to select: ");
+    choice = str2double(input("\nEnter the number of the port you want to select: ", 's')); % GPT6A
 % 5. Validate the input and select the port
-    if isempty(choice) || choice < 1 || choice > length(mySerialPorts) || mod(choice, 1) ~= 0
+    if ~ismember(choice, 1:length(mySerialPorts))
         error("Invalid selection. Please run the script again and enter a valid number.");
     else
         M5SerialPort = mySerialPorts(choice);
@@ -42,7 +42,7 @@
     clear mySerialPorts choice
 %% B. Initialize the arduino object
     if ~exist('esp32','var')
-        esp32 = arduino(M5SerialPort,'ESP32-WROOM-DevKitC','Libraries',{'I2C','M5Stack/M5Unified','Adafruit/NeoPixel'},'Traceon', true,'ForceBuildOn',true);
+        esp32 = arduino(M5SerialPort,'ESP32-WROOM-DevKitC','Libraries',{'I2C','M5Stack/M5Unified','Adafruit/NeoPixel'});
     end
     clear M5SerialPort
 %% C. Initialize the M5Unified Library as an arduinoAddOn
@@ -54,14 +54,17 @@
     m5u.lcdPrintLn('Hi Everybody')
 
 %% D. Initialize Neopixels
-%   Neopixels (programmable RGB LED's) on the M5Stack are accessed through the Adafruit NeoPixel library MATLAB Add-On, and are initialized separately.
-%   Example: M5Stack Core2 for AWS has 10 neopixels connected to D25.
+testNeoPixels = false;
+npPin = 'D25'; % NeoPixel data pin on Core2 for AWS.
+npCount = 10; % Number of NeoPixels on Core2 for AWS.
+if testNeoPixels
     if ~exist('neopix','var')
-        neopix = addon(esp32, 'Adafruit/NeoPixel', 'D25', 10, 'NeoPixelType', 'GRB');
+        neopix = addon(esp32, 'Adafruit/NeoPixel', npPin, npCount, 'NeoPixelType', 'GRB');
     end
-    % Traffic Light Example:
-    % writeColor(neopix, 1, 'green');
-    % writeColor(neopix, 3, 'yellow');
-    % writeColor(neopix, 5, 'red');
+    %Traffic light test.
+    writeColor(neopix, 1, 'green');
+    writeColor(neopix, 3, 'yellow');
+    writeColor(neopix, 5, 'red');
+end
 
 

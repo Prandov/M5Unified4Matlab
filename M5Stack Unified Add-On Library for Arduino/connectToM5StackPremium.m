@@ -1,11 +1,11 @@
-%% connectToM5StackAdv.m
+%% connectToM5StackPremium.m
 % ==================================================================================================
 % Create a connection to the M5Stack in your MATLAB workspace
 % Copyright 2024, Eric Prandovszky
 % Contact: prandov@yorku.ca
 % Version 1
 % Oct 11, 2024
-% Updated: November 3, 2026
+% Updated: November 5, 2026
 % Script to help get connected to the M5Stack.
 % ==================================================================================================
 
@@ -18,7 +18,7 @@ myM5SerialPort = '';
 if ~exist('M5SerialPort','var');M5SerialPort ='';end % Check for a previously selected port.
 if ~isempty(myM5SerialPort);M5SerialPort = myM5SerialPort;end; clear myM5SerialPort; % Check for a manually defined port.
 if isempty(M5SerialPort);serialPortSelectionWindow;end % Call the port selection window.
-if isempty(M5SerialPort)
+if isempty(M5SerialPort) % GPT6A
     error('M5Stack:PortSelectionCancelled', 'Serial port selection cancelled.');
 end
 
@@ -40,15 +40,18 @@ end
     m5u.lcdPrintLn('Hello')
 
 %% Neopixel Connection
-% Neopixels (programmable RGB LED's) on the M5Stack are accessed through the Adafruit NeoPixel library MATLAB Add-On, and are initialized separately.
-% M5Stack Core2 for AWS has 10 neopixels connected to D25.
+testNeoPixels = false;
+npPin = 'D25'; % NeoPixel data pin on Core2 for AWS.
+npCount = 10; % Number of NeoPixels on Core2 for AWS.
+if testNeoPixels
     if ~exist('neopix','var') 
-        neopix = addon(esp32, 'Adafruit/NeoPixel', 'D25', 10, 'NeoPixelType', 'GRB'); 
+        neopix = addon(esp32, 'Adafruit/NeoPixel', npPin, npCount, 'NeoPixelType', 'GRB');
     end
- % Traffic Light Example:
+ %Traffic light test.
  writeColor(neopix, 1, 'green');
  writeColor(neopix, 3, 'yellow');
  writeColor(neopix, 5, 'red');
+end
 
  %% Functions
 % Function to create a serial port selection window.
@@ -60,18 +63,18 @@ end
         if isempty(ports)
             error('No USB serial devices detected. Please check your connection.');
         else
-            ports = [{'select a value'}; ports(:)];
+            ports = [{'select a value'}; ports(:)]; % GPT6A
             % Create a figure for the dropdown
             hFig = figure('Position', [100, 100, 300, 150], 'MenuBar', 'none', 'Name', 'Select Serial Port', 'NumberTitle', 'off');
             hDropdown = uicontrol('Style', 'popupmenu','String', ports, 'Position', [50, 70, 200, 30]);
-            uicontrol('Style', 'pushbutton', 'String', 'Select','Position', [100, 30, 100, 30], 'Callback', @(src, event) selectPort(hDropdown, hFig));
+            uicontrol('Style', 'pushbutton', 'String', 'Select','Position', [100, 30, 100, 30], 'Callback', @(src, event) selectPort(hDropdown, hFig)); % GPT6A
             uiwait(hFig); 
         end
     end
     % Function to handle the serial port selection.
     function selectPort(dropdown, fig)
         selectedIndex = dropdown.Value;
-        if selectedIndex == 1
+        if selectedIndex == 1 % GPT6A
             warning('M5Stack:InvalidSerialPort', 'Select a serial port rather than the placeholder.');
             return
         end

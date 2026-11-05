@@ -18,6 +18,12 @@ This Add-On Library allows MATLAB to communicate with the integrated peripherals
 
 ## Connecting to the M5Stack
 
+Choose a connection script after setup:
+
+- **Ultra Basic** (`connectToM5StackUltraBasic`): edit `m5SerialPort` in the script, then run it in a fresh workspace to create `esp32` and `m5u`. No selection window, NeoPixels, demo commands, or forced rebuild.
+- **Standard** (`connectToM5StackStandard`, formerly Basic): numbered console port selection, and an optional NeoPixel test.
+- **Premium** (`connectToM5StackPremium`, formerly Advanced): USB port picker or manual port, tracing, and an optional NeoPixel test.
+
 Once the environment is set up, you must create two objects in our workspace.
 
 1. An 'arduino' object that represents the esp32 microcontroller .  
@@ -59,6 +65,6 @@ Development began in a separate repository using the standard MATLAB-generated A
 
 ## Notes
 
-* This Library is in development and more features will be added over time.  
-* Created using MATLAB 2024a, it likely works with any version of the arduino support packages that supports esp32.  
-* Developed using the M5 Core2 for AWS, and some testing with the M5 StickC has been done.
+* The current checkout is a v0.5 release candidate, not a validated release. See [CHANGELOG.md](CHANGELOG.md) and the [release checklist](V05-DEVELOPMENT.md).
+* Originally created using MATLAB 2024a. The Utility patch modifies MathWorks support-package internals and must be checked with each MATLAB/support-package version; retain an unpatched backup from that same installation.
+* Development and hardware testing so far have focused on Core and Core2, including Core2 for AWS. Other selectable board profiles are not a declaration of tested compatibility; record the exact configuration used for each release test.
