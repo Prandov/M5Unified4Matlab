@@ -1,70 +1,76 @@
-# M5Stack support for MATLAB
+# M5Unified Add-On Library for Arduino
 
-This *Custom Arduino Add-On Library* for the **MATLAB Support Package for Arduino hardware** brings support for **M5Stack** esp32 based devices to MATLAB. 
-This Add-On Library allows MATLAB to communicate with the integrated peripherals on the M5Stack(IMU,LCD,MIC,PMU,SPKR,etc.) using the M5Unified & M5GFX Arduino Libraries.
+Use MATLAB to control the display, power management, and other built-in peripherals on an M5Stack device. This add-on extends the MATLAB Support Package for Arduino Hardware using the M5Unified and M5GFX Arduino libraries.
 
-<img src="https://github.com/user-attachments/assets/0213adc5-5ff2-47d4-9160-c0baa1d4e117" height="100" alt="M5StackCore1">
-<img src="https://github.com/user-attachments/assets/b78d10e2-06be-4d6a-a0c0-23581f3cf67a" height="100" alt="M5StackCore2"> 
-<img src="https://github.com/user-attachments/assets/d51304a9-edea-418e-b7f2-7caba869876d" height="100" alt="M5StackCore2AWS"> 
-<img src="https://github.com/user-attachments/assets/618dc43e-1edb-4f4d-ac0c-23d9d03798ef" height="100" alt="M5StickCPlus"> 
+<img src="https://github.com/user-attachments/assets/0213adc5-5ff2-47d4-9160-c0baa1d4e117" height="100" alt="M5Stack Core">
+<img src="https://github.com/user-attachments/assets/b78d10e2-06be-4d6a-a0c0-23581f3cf67a" height="100" alt="M5Stack Core2">
+<img src="https://github.com/user-attachments/assets/d51304a9-edea-418e-b7f2-7caba869876d" height="100" alt="M5Stack Core2 for AWS">
+<img src="https://github.com/user-attachments/assets/618dc43e-1edb-4f4d-ac0c-23d9d03798ef" height="100" alt="M5StickC Plus">
 
-## Required Items:
+## Required Items
 
-1. MATLAB.  
-2. esp32 based M5Stack (Core, Core2, Stick, Stick2,Atom).  
-3. MATLAB Support Package for Arduino hardware.  
-4. M5Unified & M5GFX Arduino Libraries installed in the arduino libraries folder [install script included].  
-5. M5Unified Add-On Library for Arduino (this).
+1. MATLAB.
+2. MATLAB Support Package for Arduino Hardware.
+3. M5Unified Add-On Library for Arduino (this add-on).
+4. Use an [M5Unified](https://github.com/m5stack/M5Unified)-compatible device with an ESP32 or ESP32-S3 processor. Check the MathWorks [Supported Hardware](https://www.mathworks.com/help/matlab/supportpkg/supported-hardware.html) list for your MATLAB release.
+5. The M5Unified and M5GFX Arduino libraries, installed by the preparation script below.
+6. NeoPixel Add-On Library for Arduino: optional for your own connection script; required to run the Standard or Premium examples unchanged.”.
+
+## Prepare MATLAB
+
+After installing items 1 to 3 above, open the add-on's `Utilities` folder in MATLAB and run: `prepareForM5Stack`
+
+This runs `patchArduinoUtilityV3` to enable M5Stack board selection during a server build, then runs `installArduinoLibsFromGitHub` to install the required Arduino libraries. Do this once each time you update to a new version of MATLAB, MATLAB Support Package for Arduino Hardware or this library.
 
 ## Connecting to the M5Stack
 
-Choose a connection script after setup:
+1. Connect to the M5Stack by creating an `arduino` object.
+   -  For an original **ESP32** device such as the Core2 for AWS, use `'ESP32-WROOM-DevKitC'` as the MATLAB board type. Select your actual M5Stack model when prompted during the build.
+   -  To find the **Serial port**, run `serialportlist` in the MATLAB Command Window. If several ports appear, compare the list before and after connecting the M5Stack by USB. Replace `'COM6'` with your device's port.
 
-- **Ultra Basic** (`connectToM5StackUltraBasic`): edit `m5SerialPort` in the script, then run it in a fresh workspace to create `esp32` and `m5u`. No selection window, NeoPixels, demo commands, or forced rebuild.
-- **Standard** (`connectToM5StackStandard`, formerly Basic): numbered console port selection, and an optional NeoPixel test.
-- **Premium** (`connectToM5StackPremium`, formerly Advanced): USB port picker or manual port, tracing, and an optional NeoPixel test.
+   ```matlab
+   m5SerialPort = 'COM6';  % Replace with your port, e.g. '/dev/cu.SLAB_USBtoUART' on macOS.
+   esp32 = arduino(m5SerialPort, 'ESP32-WROOM-DevKitC', 'Libraries', {'M5Stack/M5Unified'});
+   ```
+2. Create an M5Unified object to control the built-in peripherals on the M5Stack.
 
-Once the environment is set up, you must create two objects in our workspace.
-
-1. An 'arduino' object that represents the esp32 microcontroller .  
-2. An 'addon' object that represents the M5Unified Libraries & the devices M5Unified controls.
-
-### First: Initialize communication with the esp32 inside the M5Stack.
-
-*Example:*
-
-```esp32 \= arduino('COM6','ESP32-WROOM-DevKitC','Libraries',{'I2C','M5Stack/M5Unified'});```
-
-### Second: Initialize the M5Unified Arduino Add-On Library.
-
-*Example:*
-
-```M5Unified \= addon(esp32,'M5Stack/M5Unified');```
+   ```matlab
+   m5u = addon(esp32, 'M5Stack/M5Unified');
+   ```
 
 ## Controlling the M5Stack
 
-Use the 'arduino' object namespace to communicate with the esp32.
+Use `esp32` for pin I/O, I2C, and serial communication. For example, if D33 is available as an analog input on your board:
 
-*Example:*
+```matlab
+pinVolts = readVoltage(esp32, 'D33');
+```
+Use `m5u` for built-in peripherals supported by the M5Unified Library. These examples read the board identity, write to the LCD, and read the battery charge and voltage. 
 
-```esp32.writeDigitalPin('D32',0);```
-
-```esp32.readVoltage('D33');```
-
-Use the 'addon' object namespace to communicate with the M5Stack components.
-
-*Example:*
-
-```M5Unified.lcdPrint('Hello');```
-
+```matlab
+boardName = m5u.getM5Type();
+m5u.lcdPrintLn('Hello from MATLAB');
+batteryPercent = m5u.powerGetBatteryLevel();
+batteryMillivolts = m5u.powerGetBatteryVoltage();
+```
 ## Contributors and Development
 
-Developed by Eric Prandovszky in collaboration with [Greatlove Bariboloka (@Lebari)](https://github.com/Lebari). Greatlove contributed to the MATLAB/C++ add-on implementation, testing, and usage documentation, including extensive improvements to function comments.
+Developed by Eric Prandovszky in collaboration with Greatlove Bariboloka.
 
-Development began in a separate repository using the standard MATLAB-generated ArduinoServer as a starting point. We opened that project in PlatformIO to develop the C++ implementation, making it straightforward to compile, upload, and test on the hardware. The MATLAB interface was developed directly in MATLAB and synchronized periodically with the C++ implementation. The components needed for the custom Arduino add-on were then brought together in this repository for distribution.
+Development began with the MATLAB-generated ArduinoServer in a separate PlatformIO repository, where we compiled, uploaded, and tested the C++ implementation. We wrote the MATLAB interface directly in MATLAB and synchronized the two periodically before bringing the add-on components together here.
 
 ## Notes
 
-* The current checkout is a v0.5 release candidate, not a validated release. See [CHANGELOG.md](CHANGELOG.md) and the [release checklist](V05-DEVELOPMENT.md).
-* Originally created using MATLAB 2024a. The Utility patch modifies MathWorks support-package internals and must be checked with each MATLAB/support-package version; retain an unpatched backup from that same installation.
-* Development and hardware testing so far have focused on Core and Core2, including Core2 for AWS. Other selectable board profiles are not a declaration of tested compatibility; record the exact configuration used for each release test.
+- Development has primarily used the **M5Stack Core2 for AWS**. A selectable board profile does not mean that board has been tested.
+- The `patchArduinoUtilityV3` script modifies `+arduinoio/+internal/Utility.m` in the MathWorks Arduino support package and saves `UtilityOriginalUnpatched.m` **in the same directory**. Run `which('arduinoio.internal.Utility')` to see the full path on your machine.
+- Originally developed with MATLAB R2024a. See the [changelog](CHANGELOG.md) and [release checklist](V05-DEVELOPMENT.md).
+
+## Reference Connection Scripts
+
+These scripts are examples of ways to connect to the M5Stack:
+
+- `connectToM5StackUltraBasic`: manually set the serial port and create just the two connection objects.
+- `connectToM5StackStandard`: select a numbered port in the Command Window.
+- `connectToM5StackPremium`: select a USB serial device in a window or specify the port manually.
+
+Standard and Premium also include an optional NeoPixel test. Both request `Adafruit/NeoPixel` when creating the Arduino object, so you need MATLAB NeoPixel Add-On Library for Arduino to use either script unchanged.
