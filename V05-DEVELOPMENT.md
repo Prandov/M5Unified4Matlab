@@ -1,6 +1,6 @@
-# Version 0.5 release checklist
+# Version 0.5.1 release checklist
 
-Status: release candidate, not yet published. VERSION and the main MATLAB/C++ headers identify 0.5. Do not create the final v0.5 tag until the release checks below pass.
+Status: release candidate, not yet published. VERSION and the main MATLAB/C++ headers identify 0.5.1. This release includes the 0.5 candidate work and the MATLAB Project/toolbox packaging transition. Do not publish v0.5.1 until the release checks below pass.
 
 See [V05-AUDIT.md](V05-AUDIT.md) for the tag-to-candidate review, approval questions, and source comment markers.
 
@@ -21,7 +21,7 @@ See [V05-AUDIT.md](V05-AUDIT.md) for the tag-to-candidate review, approval quest
 - Earlier simulated port-name tests targeted a superseded Basic script; they do not validate the current numeric menu. Test the current scripts on macOS.
 - Eric reported successful patch execution and successful device use after recreating the Arduino, M5Unified, and NeoPixel objects. The initial connection/I/O failure remains unexplained.
 
-## Before tagging v0.5
+## Before publishing v0.5.1
 
 - [ ] Commit the final scripts and metadata, and use that exact commit for testing.
 - [ ] On the Mac, record the commit, macOS version, MATLAB release, Arduino support-package version, ESP32 core version, M5Unified/M5GFX versions, and board model.
@@ -33,7 +33,7 @@ See [V05-AUDIT.md](V05-AUDIT.md) for the tag-to-candidate review, approval quest
 - [ ] Reconnect using compatible installed firmware without forcing a build. Expect no board-profile dialog. Compare with a forced update, where the dialog should appear for M5Unified.
 - [ ] Repeat from a fresh session to check reproducibility; do not treat successful reuse of existing objects as a fresh-connection test.
 - [ ] Download/package the exact candidate revision and test installation from that artifact, not just the development checkout. Check for duplicate add-on copies and unwanted resources, autosaves, or generated HTML.
-- [ ] Record pass/fail results and tested configurations. Resolve or explicitly document remaining limitations, then finalize release notes and create the v0.5 tag/release.
+- [ ] Record pass/fail results and tested configurations. Resolve or explicitly document remaining limitations, then finalize release notes and publish the v0.5.1 release.
 
 A full automated hardware-in-the-loop suite is deferred. Broader ESP32-S3 and RISC-V validation is separate from the Core/Core2 smoke test; do not advertise untested boards as verified.
 

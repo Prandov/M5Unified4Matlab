@@ -55,6 +55,10 @@ batteryMillivolts = m5u.powerGetBatteryVoltage();
 ```
 ## Contributors and Development
 
+Open `M5Unified4Matlab.prj` to work in the MATLAB Project. To build a release installer,
+run `buildToolbox` from the repository root. See [PACKAGING.md](PACKAGING.md)
+for the build, installation, and release workflow.
+
 Developed by Eric Prandovszky in collaboration with Greatlove Bariboloka.
 
 Development began with the MATLAB-generated ArduinoServer in a separate PlatformIO repository, where we compiled, uploaded, and tested the C++ implementation. We wrote the MATLAB interface directly in MATLAB and synchronized the two periodically before bringing the add-on components together here.

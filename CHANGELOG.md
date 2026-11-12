@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.1 - Project and toolbox packaging (release candidate)
+
+- Name the MATLAB Project and its entry file M5Unified4Matlab to match the GitHub repository.
+- Restore the original MATLAB/M5Stack/York U/Arduino collage as the toolbox image.
+- Package from a flat staging root so the library folder is not duplicated inside the installed add-on folder; verify root files and installed path entries in GitHub Actions.
+- Add the M5Unified MATLAB Project, project paths, and build/getting-started shortcuts.
+- Build an explicit `.mltbx` release with `buildToolbox`, reading the version from VERSION and preserving the existing add-on UUID.
+- Include the wrapper, C++ header, utilities, examples, license, images, and user documentation; exclude development metadata and installed artifacts.
+- Add a GitHub Actions workflow to build installers on demand and prepare a draft GitHub release on version-tag pushes.
+- Regenerate wrapper HTML with MATLAB publish (evalCode=false) during every toolbox build and include the fresh document in the installer.
+- Keep preparation manual: opening the project and building the installer do not patch MathWorks files, download Arduino libraries, or connect to hardware.
+- Includes the preceding 0.5 candidate changes below. Hardware and File Exchange upgrade validation remain pending.
+
+Future work: support the legacy Arduino library location before R2024a and verify the corresponding Utility patch. The current preparation requirement remains R2024a or later.
+
 ## 0.5 - Release candidate (not yet published)
 
 - Use the V3 MathWorks Utility patch for M5Stack board-profile selection. All listed profiles remain selectable, including C3/P4; selection does not imply validated support.

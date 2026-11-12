@@ -60,7 +60,7 @@ try
     % Save a clean Utility.m before attempting any modifications, including on repeat runs.
     writeUtilityFile(filePath, backupFileContents);
     fprintf(' -Unmodified Utility.m saved from %s.\n', backupFileName);
-    patchMarker = '% M5Unified Utility patch for add-on 0.5';
+    patchMarker = '% M5Unified Utility patch for add-on 0.5.1';
     newFileContents = backupFileContents; %Make a copy to compare output
 %% Lines to comment out
 % Lines need to be unique within the file to prevent unintended changes.
