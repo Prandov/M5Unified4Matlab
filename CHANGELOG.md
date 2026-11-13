@@ -4,12 +4,18 @@
 
 - Name the MATLAB Project and its entry file M5Unified4Matlab to match the GitHub repository.
 - Restore the original MATLAB/M5Stack/York U/Arduino collage as the toolbox image.
+- Set Eric Prandovszky as the release author; retain contributor credits in the source and README.
+- Defer generated HTML documentation from the release while it is revised.
+- Bundle local board images for the README and use standard Markdown image links.
+- Center the Premium serial-port selector before displaying it, retaining its dropdown and fixed size.
+- Close temporary Utility files before deleting them after write failures; retain the original write error and existing Utility/backup contents.
 - Package from a flat staging root so the library folder is not duplicated inside the installed add-on folder; verify root files and installed path entries in GitHub Actions.
-- Add the M5Unified MATLAB Project, project paths, and build/getting-started shortcuts.
+- Add the M5Unified MATLAB Project, project paths, and build shortcuts.
+- Keep setup instructions in README.md and connection scripts; provide GettingStarted.mlx with immediately usable navigation links and no Run step.
 - Build an explicit `.mltbx` release with `buildToolbox`, reading the version from VERSION and preserving the existing add-on UUID.
 - Include the wrapper, C++ header, utilities, examples, license, images, and user documentation; exclude development metadata and installed artifacts.
 - Add a GitHub Actions workflow to build installers on demand and prepare a draft GitHub release on version-tag pushes.
-- Regenerate wrapper HTML with MATLAB publish (evalCode=false) during every toolbox build and include the fresh document in the installer.
+- Retain buildDocumentation as an optional development-only HTML preview using evalCode=false.
 - Keep preparation manual: opening the project and building the installer do not patch MathWorks files, download Arduino libraries, or connect to hardware.
 - Includes the preceding 0.5 candidate changes below. Hardware and File Exchange upgrade validation remain pending.
 

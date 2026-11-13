@@ -2,10 +2,10 @@
 
 Use MATLAB to control the display, power management, and other built-in peripherals on an M5Stack device. This add-on extends the MATLAB Support Package for Arduino Hardware using the M5Unified and M5GFX Arduino libraries.
 
-<img src="https://github.com/user-attachments/assets/0213adc5-5ff2-47d4-9160-c0baa1d4e117" height="100" alt="M5Stack Core">
-<img src="https://github.com/user-attachments/assets/b78d10e2-06be-4d6a-a0c0-23581f3cf67a" height="100" alt="M5Stack Core2">
-<img src="https://github.com/user-attachments/assets/d51304a9-edea-418e-b7f2-7caba869876d" height="100" alt="M5Stack Core2 for AWS">
-<img src="https://github.com/user-attachments/assets/618dc43e-1edb-4f4d-ac0c-23d9d03798ef" height="100" alt="M5StickC Plus">
+![M5Stack Core](images/boards/core.jpg)
+![M5Stack Core2](images/boards/core2.jpg)
+![M5Stack Core2 for AWS](images/boards/core2-aws.jpg)
+![M5StickC Plus](images/boards/stickc-plus.jpg)
 
 ## Required Items
 

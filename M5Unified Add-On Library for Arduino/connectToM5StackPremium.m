@@ -65,9 +65,14 @@ end
         else
             ports = [{'select a value'}; ports(:)]; % GPT6A
             % Create a figure for the dropdown
-            hFig = figure('Position', [100, 100, 300, 150], 'MenuBar', 'none', 'Name', 'Select Serial Port', 'NumberTitle', 'off');
+            hFig = figure('Units', 'pixels', 'Position', [100, 100, 300, 150], ...
+                'Visible', 'off', 'WindowStyle', 'normal', 'MenuBar', 'none', ...
+                'Name', 'Select Serial Port', 'NumberTitle', 'off');
             hDropdown = uicontrol('Style', 'popupmenu','String', ports, 'Position', [50, 70, 200, 30]);
             uicontrol('Style', 'pushbutton', 'String', 'Select','Position', [100, 30, 100, 30], 'Callback', @(src, event) selectPort(hDropdown, hFig)); % GPT6A
+            % GPT6A: Center before showing to avoid a lower-left flash.
+            movegui(hFig, 'center');
+            set(hFig, 'Visible', 'on');
             uiwait(hFig); 
         end
     end

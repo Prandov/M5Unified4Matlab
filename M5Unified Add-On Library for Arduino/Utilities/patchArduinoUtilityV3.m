@@ -219,15 +219,23 @@ end
 end
 
 function writeUtilityFile(filePath, contents)
-% Write a new file beside Utility.m; never truncate the current file in place.
+% Write to a uniquely named temporary .m file in the same folder as Utility.m.
+% Opening Utility.m directly for writing would truncate the working file before
+% the replacement is complete. A temporary file protects it against partial
+% writes or write/close failures, for example disk-full or filesystem I/O errors,
+% and exceptions while writing the supplied data. Check the byte count, close
+% result, and saved contents before replacing Utility.m. These checks verify
+% the save; they do not validate the correctness of the patch itself.
 temporaryPath = [tempname(fileparts(filePath)) '.m'];
-temporaryCleanup = onCleanup(@() deleteTemporaryUtility(temporaryPath)); %#ok<NASGU>
 [fid, message] = fopen(temporaryPath, 'w');
+% GPT6A: Close before deleting on an error or interruption after opening.
+% Separate onCleanup callbacks have no guaranteed order; deleting an open file
+% can fail and leave a temporary file or open handle behind.
+temporaryCleanup = onCleanup(@() cleanupTemporaryUtility(fid, temporaryPath)); %#ok<NASGU>
 if fid < 0
     error('M5Stack:UtilityWriteFailed', ...
         'Cannot open %s for writing: %s. Check access permissions or file locks; original backup retained.', filePath, message);
 end
-fileCleanup = onCleanup(@() closeUtilityFile(fid)); %#ok<NASGU>
 % Detect incomplete writes rather than reporting a successful patch.
 count = fwrite(fid, contents);
 if count ~= numel(contents)
@@ -237,7 +245,6 @@ closeStatus = fclose(fid);
 if closeStatus ~= 0
     error('M5Stack:UtilityWriteFailed', 'Cannot finish writing %s; verify or restore the original backup.', filePath);
 end
-clear fileCleanup
 % Confirm the saved text before replacing Utility.m; write/close errors are checked above.
 if ~strcmp(fileread(temporaryPath), contents)
     error('M5Stack:UtilityWriteFailed', 'Saved contents do not match the requested text; existing Utility.m and backup retained.');
@@ -248,15 +255,27 @@ if ~status
 end
 end
 
-function closeUtilityFile(fid)
-if ~isempty(fopen(fid))
-    fclose(fid);
+function cleanupTemporaryUtility(fid, temporaryPath)
+% GPT6A: Cleanup is best effort; report failures without replacing the write error.
+try
+    % A closed identifier can be reused: close only our own temporary file.
+    if fid >= 0 && strcmp(fopen(fid), temporaryPath)
+        if fclose(fid) ~= 0
+            warning('M5Stack:UtilityCleanupFailed', ...
+                'Cannot close temporary Utility file: %s', temporaryPath);
+        end
+    end
+catch exception
+    warning('M5Stack:UtilityCleanupFailed', ...
+        'Cannot close temporary Utility file %s: %s', temporaryPath, exception.message);
 end
-end
-
-function deleteTemporaryUtility(filePath)
-if isfile(filePath)
-    delete(filePath);
+try
+    if isfile(temporaryPath)
+        delete(temporaryPath);
+    end
+catch exception
+    warning('M5Stack:UtilityCleanupFailed', ...
+        'Cannot remove temporary Utility file %s: %s', temporaryPath, exception.message);
 end
 end
 

@@ -14,9 +14,12 @@ def verify(filename):
         required = {
             '+arduinoioaddons/+M5Stack/M5Unified.m',
             '+arduinoioaddons/+M5Stack/src/M5UnifiedML.h',
-            '+arduinoioaddons/+M5Stack/html/M5Unified.html',
-            'GettingStarted.m', 'README.md', 'CHANGELOG.md', 'VERSION',
+            'GettingStarted.mlx', 'README.md', 'CHANGELOG.md', 'VERSION',
             'images/M5Unified4Matlab.png',
+            'images/boards/core.jpg',
+            'images/boards/core2.jpg',
+            'images/boards/core2-aws.jpg',
+            'images/boards/stickc-plus.jpg',
             'Utilities/prepareForM5Stack.m', 'Examples/ExampleM5Chessboard.m',
         }
         assert required <= files, f'Missing files at install root: {required - files}'
@@ -32,9 +35,11 @@ def verify(filename):
         paths = {node.text.strip('/') if node.text else ''
                  for node in config.findall('c:matlabPaths/c:matlabPath', ns)}
         assert paths == {'', 'Utilities', 'Examples'}, f'Incorrect MATLAB paths: {paths}'
+        assert 'info.xml' not in files and not any(name.endswith(('.html', 'helptoc.xml')) for name in files), \
+            'Unfinished HTML documentation must not be packaged.'
         guide = config.find('c:gettingStartedDocPath', ns)
-        assert guide is not None and guide.text.lstrip('/') == 'GettingStarted.m', \
-            'Getting Started must be at the install root.'
+        assert guide is not None and (guide.text or '').lstrip('/') == 'GettingStarted.mlx', \
+            'The navigation page must be registered for Add-Ons documentation access.'
     print(f'PASS: {filename}: {len(files)} release files at the correct install root.')
 
 

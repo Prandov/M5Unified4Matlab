@@ -2,7 +2,6 @@ function outputFile = buildToolbox
 %BUILDTOOLBOX Build the release installer without installing or running it.
 % Created with GPT6A for the MATLAB Project and toolbox release workflow.
 % Run from the repository root in MATLAB R2024a or later.
-buildDocumentation;
 root = fileparts(mfilename('fullpath'));
 library = fullfile(root, 'M5Unified Add-On Library for Arduino');
 outputFolder = fullfile(root, 'release');
@@ -14,7 +13,8 @@ end
 stagingFolder = tempname(outputFolder);
 mkdir(stagingFolder);
 stagingCleanup = onCleanup(@() rmdir(stagingFolder, 's')); %#ok<NASGU>
-rootDocuments = ["README.md", "CHANGELOG.md", "VERSION"];
+rootDocuments = ["README.md", "CHANGELOG.md", "VERSION", ...
+    "images/boards/core.jpg", "images/boards/core2.jpg", "images/boards/core2-aws.jpg", "images/boards/stickc-plus.jpg"];
 relativeFiles = toolboxFileList;
 for index = 1:numel(relativeFiles)
     relativeFile = relativeFiles(index);

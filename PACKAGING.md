@@ -20,7 +20,7 @@ The output is `release/M5Unified-0.5.1.mltbx` for the current `VERSION`.
 `toolboxOptions.m` defines metadata and installation paths; `toolboxFileList.m`
 defines the explicit release file list. Update that list when adding files needed by users. It
 includes the MATLAB wrapper, C++ header, utilities, examples, images, license,
-README, changelog, version, getting-started instructions, and fresh wrapper HTML. Development and
+README with local board images, changelog, version, and the live navigation page. Development and
 project files are excluded. Building does not install the result or run any
 library code. No MATLAB Compiler license is needed.
 
@@ -34,21 +34,19 @@ installed add-on folder. Staging is removed after the build.
 The GitHub workflow checks this layout and the installed MATLAB paths with
 `python tests/verify_toolbox_layout.py release/*.mltbx`.
 
-Each `buildToolbox` call first runs `buildDocumentation`, which publishes the
-current `M5Unified.m` with `evalCode=false` and includes the resulting
-`+arduinoioaddons/+M5Stack/html/M5Unified.html` in the installer. This also runs
-in GitHub Actions because it uses the same build command. The generated HTML
-is ignored by Git. The old HTML and `demos.xml` are not restored. Publishing
-renders the current comments and source, including sections marked as inactive
-or future work; it does not turn those sections into supported features.
+The release includes GettingStarted.mlx, a text-only Live Editor navigation page.
+Its links are usable immediately when opened from Add-Ons > Open Documentation;
+there is no Run step and it does not connect to hardware. Edit this file in the
+Live Editor to maintain the navigation page. README.md remains the setup guide,
+and connection scripts remain the runnable examples. README board images use
+standard Markdown and packaged local files under images/boards, so they do not
+depend on remote image loading in a Markdown viewer. A GitHub README link is
+also available from the live page.
 
-To regenerate documentation alone, run `buildDocumentation`. To open the
-installed or development copy from MATLAB:
-
-```matlab
-classFolder = fileparts(which('arduinoioaddons.M5Stack.M5Unified'));
-web(fullfile(classFolder, 'html', 'M5Unified.html'), '-browser');
-```
+Generated wrapper HTML and its Help registration are omitted from this release
+while the HTML is revised. buildToolbox does not publish HTML. buildDocumentation
+is retained as an optional development preview, with evalCode=false; its output
+is ignored by Git and is not packaged.
 
 Keep identifier `b313688e-800a-415f-b056-b41df863d83c` unchanged across releases;
 it matches the existing 0.4.9 add-on. Change `VERSION` before a new release and
@@ -58,7 +56,9 @@ keep the MATLAB and C++ source version headers and changelog in sync.
 
 Double-click the `.mltbx` file in MATLAB and review the installation dialog.
 The installer adds the library parent, Utilities, and Examples to the path.
-It opens `GettingStarted.m`, which contains instructions only. Install MATLAB
+GettingStarted.mlx is registered as the installer/Add-Ons documentation entry.
+It displays navigation links as formatted text without executing any code.
+Use README.md for preparation and connection instructions. Install MATLAB
 Support Package for Arduino Hardware separately. NeoPixel Add-On Library for
 Arduino is also needed by the Standard and Premium examples unchanged.
 Arduino C++ libraries are downloaded by the existing manual preparation script.

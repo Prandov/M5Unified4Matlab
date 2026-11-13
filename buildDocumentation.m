@@ -1,7 +1,7 @@
 function htmlFile = buildDocumentation
 %BUILDDOCUMENTATION Publish the current wrapper without executing its code.
 % Created with GPT6A for the MATLAB Project and toolbox release workflow.
-% Generated HTML stays out of source control and is rebuilt for each installer.
+% Optional development preview only; HTML is not included in the toolbox release.
 root = fileparts(mfilename('fullpath'));
 classFolder = fullfile(root, 'M5Unified Add-On Library for Arduino', ...
     '+arduinoioaddons', '+M5Stack');

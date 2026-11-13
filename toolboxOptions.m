@@ -8,7 +8,7 @@ opts = matlab.addons.toolbox.ToolboxOptions(packageFolder, ...
     'b313688e-800a-415f-b056-b41df863d83c');
 opts.ToolboxName = 'M5Unified Add-On Library for Arduino';
 opts.ToolboxVersion = strtrim(fileread(fullfile(root, 'VERSION')));
-opts.AuthorName = 'Eric Prandovszky, Greatlove Bariboloka';
+opts.AuthorName = 'Eric Prandovszky';
 opts.AuthorEmail = 'prandov@yorku.ca';
 opts.Summary = 'Control built-in M5Stack peripherals from MATLAB through Arduino.';
 opts.Description = ['Extends MATLAB Support Package for Arduino Hardware ' ...
@@ -25,10 +25,10 @@ opts.ToolboxImageFile = fullfile(packageFolder, 'images', 'M5Unified4Matlab.png'
 % scripts, installed resources, or autosaves. All paths are relative to the
 % install root; buildToolbox populates the staging folder before packaging.
 opts.ToolboxFiles = fullfile(packageFolder, toolboxFileList);
-% Only the package parent belongs on the path, never the +package or src folders.
+% Include the package parent, never the +package or src folders.
 opts.ToolboxMatlabPath = [string(packageFolder); ...
     string(fullfile(packageFolder, 'Utilities')); string(fullfile(packageFolder, 'Examples'))];
-opts.ToolboxGettingStartedGuide = fullfile(packageFolder, 'GettingStarted.m');
+opts.ToolboxGettingStartedGuide = fullfile(packageFolder, 'GettingStarted.mlx');
 opts.OutputFile = fullfile(root, 'release', ...
     ['M5Unified-' char(opts.ToolboxVersion) '.mltbx']);
 end
