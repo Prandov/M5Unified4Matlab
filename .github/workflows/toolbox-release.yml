@@ -41,11 +41,11 @@ jobs:
       - name: Build toolbox
         uses: matlab-actions/run-command@v3
         with:
-          command: addpath(fullfile(pwd, 'tools', 'packaging')); buildToolbox
+          command: addpath(fullfile(pwd, 'development', 'packaging')); buildToolbox
 
       - name: Verify installed folder layout
         shell: bash
-        run: python tests/verify_toolbox_layout.py release/*.mltbx
+        run: python development/tests/verify_toolbox_layout.py release/*.mltbx
 
       - name: Calculate checksum
         shell: bash

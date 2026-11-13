@@ -3,10 +3,10 @@
 Use MATLAB to control the display, power management, and other built-in peripherals on an M5Stack device. This add-on extends the MATLAB Support Package for Arduino Hardware using the M5Unified and M5GFX Arduino libraries.
 
 <p>
-<img src="images/boards/core.jpg" height="120" alt="M5Stack Core">
-<img src="images/boards/core2.jpg" height="120" alt="M5Stack Core2">
-<img src="images/boards/core2-aws.jpg" height="120" alt="M5Stack Core2 for AWS">
-<img src="images/boards/stickc-plus.jpg" height="120" alt="M5StickC Plus">
+<img src="development/docs/images/boards/core.jpg" height="120" alt="M5Stack Core">
+<img src="development/docs/images/boards/core2.jpg" height="120" alt="M5Stack Core2">
+<img src="development/docs/images/boards/core2-aws.jpg" height="120" alt="M5Stack Core2 for AWS">
+<img src="development/docs/images/boards/stickc-plus.jpg" height="120" alt="M5StickC Plus">
 </p>
 
 ## Required Items
@@ -70,7 +70,7 @@ Standard and Premium also include an optional NeoPixel test. Both request `Adafr
 
 - Development has primarily used the **M5Stack Core2 for AWS**. A selectable board profile does not mean that board has been tested.
 - The `patchArduinoUtilityV3` script modifies `+arduinoio/+internal/Utility.m` in the MathWorks Arduino support package and saves `UtilityOriginalUnpatched.m` **in the same directory**. Run `which('arduinoio.internal.Utility')` to see the full path on your machine.
-- Originally developed with MATLAB R2024a. See the [changelog](CHANGELOG.md) and [release checklist](https://github.com/Prandov/M5Unified4Matlab/blob/main/docs/development/V05-DEVELOPMENT.md).
+- Originally developed with MATLAB R2024a. See the [changelog](CHANGELOG.md) and [release checklist](https://github.com/Prandov/M5Unified4Matlab/blob/main/development/docs/V05-DEVELOPMENT.md).
 
 ## Contributors and Development
 

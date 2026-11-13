@@ -16,10 +16,10 @@ def verify(filename):
             '+arduinoioaddons/+M5Stack/src/M5UnifiedML.h',
             'GettingStarted.mlx', 'README.md', 'CHANGELOG.md', 'VERSION',
             'images/M5Unified4Matlab.png',
-            'images/boards/core.jpg',
-            'images/boards/core2.jpg',
-            'images/boards/core2-aws.jpg',
-            'images/boards/stickc-plus.jpg',
+            'development/docs/images/boards/core.jpg',
+            'development/docs/images/boards/core2.jpg',
+            'development/docs/images/boards/core2-aws.jpg',
+            'development/docs/images/boards/stickc-plus.jpg',
             'Utilities/prepareForM5Stack.m', 'Examples/ExampleM5Chessboard.m',
         }
         assert required <= files, f'Missing files at install root: {required - files}'

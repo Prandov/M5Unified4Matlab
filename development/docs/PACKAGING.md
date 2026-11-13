@@ -1,7 +1,7 @@
 # MATLAB Project and toolbox releases
 
 Open `M5Unified4Matlab.prj` in MATLAB to work on this library. The project adds the
-repository root, tools/packaging, and the library, Utilities, and Examples folders to the path
+repository root, development/packaging, and the library, Utilities, and Examples folders to the path
 for the project session. Closing the project restores the previous path.
 Project startup does not run preparation scripts or connect to hardware.
 
@@ -17,18 +17,21 @@ installer = buildToolbox;
 ```
 
 To build without opening the project, first run
-`addpath(fullfile(pwd, 'tools', 'packaging'))` from the repository root.
-The release scripts live in `tools/packaging/`; this document and the historical
-validation/audit notes live in `docs/development/`. These development files are
-not included in the installed toolbox.
+`addpath(fullfile(pwd, 'development', 'packaging'))` from the repository root.
+The release scripts live in `development/packaging/`; this document and the historical
+validation/audit notes live in `development/docs/`. Developer scripts and notes are
+not included in the installed toolbox; only the four board images are selected
+from the development documentation tree. Regression checks live under
+`development/tests/`; documentation images live under `development/docs/images/boards/`.
+MATLAB-managed XML project definitions remain in `resources/project/`.
 
 The output is `release/M5Unified-0.5.1.mltbx` for the current `VERSION`.
-`tools/packaging/toolboxOptions.m` defines metadata and installation paths;
-`tools/packaging/toolboxFileList.m`
+`development/packaging/toolboxOptions.m` defines metadata and installation paths;
+`development/packaging/toolboxFileList.m`
 defines the explicit release file list. Update that list when adding files needed by users. It
 includes the MATLAB wrapper, C++ header, utilities, examples, images, license,
-README with local board images, changelog, version, and the live navigation page. Development and
-project files are excluded. Building does not install the result or run any
+README with local board images, changelog, version, and the live navigation page. Developer scripts, notes, and
+project metadata are excluded. Building does not install the result or run any
 library code. No MATLAB Compiler license is needed.
 
 The build copies the listed release files into a temporary staging folder and
@@ -39,14 +42,14 @@ scripts, and documentation are placed directly inside it. The repository's
 installed add-on folder. Staging is removed after the build.
 
 The GitHub workflow checks this layout and the installed MATLAB paths with
-`python tests/verify_toolbox_layout.py release/*.mltbx`.
+`python development/tests/verify_toolbox_layout.py release/*.mltbx`.
 
 The release includes GettingStarted.mlx, a text-only Live Editor navigation page.
 Its links are usable immediately when opened from Add-Ons > Open Documentation;
 there is no Run step and it does not connect to hardware. Edit this file in the
 Live Editor to maintain the navigation page. README.md remains the setup guide,
 and connection scripts remain the runnable examples. README board images use
-packaged local JPEGs with native 120-pixel height under images/boards, so they do not
+packaged local JPEGs with native 120-pixel height under development/docs/images/boards, so they do not
 depend on remote image loading in a Markdown viewer. A GitHub README link is
 also available from the live page.
 
