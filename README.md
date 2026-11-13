@@ -70,7 +70,7 @@ Standard and Premium also include an optional NeoPixel test. Both request `Adafr
 
 - Development has primarily used the **M5Stack Core2 for AWS**. A selectable board profile does not mean that board has been tested.
 - The `patchArduinoUtilityV3` script modifies `+arduinoio/+internal/Utility.m` in the MathWorks Arduino support package and saves `UtilityOriginalUnpatched.m` **in the same directory**. Run `which('arduinoio.internal.Utility')` to see the full path on your machine.
-- Originally developed with MATLAB R2024a. See the [changelog](CHANGELOG.md) and [release checklist](V05-DEVELOPMENT.md).
+- Originally developed with MATLAB R2024a. See the [changelog](CHANGELOG.md) and [release checklist](https://github.com/Prandov/M5Unified4Matlab/blob/main/docs/development/V05-DEVELOPMENT.md).
 
 ## Contributors and Development
 

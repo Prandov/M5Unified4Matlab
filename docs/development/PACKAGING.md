@@ -1,7 +1,7 @@
 # MATLAB Project and toolbox releases
 
 Open `M5Unified4Matlab.prj` in MATLAB to work on this library. The project adds the
-repository root and the library, Utilities, and Examples folders to the path
+repository root, tools/packaging, and the library, Utilities, and Examples folders to the path
 for the project session. Closing the project restores the previous path.
 Project startup does not run preparation scripts or connect to hardware.
 
@@ -10,14 +10,21 @@ The project definition is committed with the source. After cloning, open
 
 ## Build an installer
 
-In MATLAB R2024a or later, from this repository's root, run:
+In MATLAB R2024a or later, open M5Unified4Matlab.prj from the repository root, then run:
 
 ```matlab
 installer = buildToolbox;
 ```
 
+To build without opening the project, first run
+`addpath(fullfile(pwd, 'tools', 'packaging'))` from the repository root.
+The release scripts live in `tools/packaging/`; this document and the historical
+validation/audit notes live in `docs/development/`. These development files are
+not included in the installed toolbox.
+
 The output is `release/M5Unified-0.5.1.mltbx` for the current `VERSION`.
-`toolboxOptions.m` defines metadata and installation paths; `toolboxFileList.m`
+`tools/packaging/toolboxOptions.m` defines metadata and installation paths;
+`tools/packaging/toolboxFileList.m`
 defines the explicit release file list. Update that list when adding files needed by users. It
 includes the MATLAB wrapper, C++ header, utilities, examples, images, license,
 README with local board images, changelog, version, and the live navigation page. Development and
@@ -39,7 +46,7 @@ Its links are usable immediately when opened from Add-Ons > Open Documentation;
 there is no Run step and it does not connect to hardware. Edit this file in the
 Live Editor to maintain the navigation page. README.md remains the setup guide,
 and connection scripts remain the runnable examples. README board images use
-standard Markdown and packaged local files under images/boards, so they do not
+packaged local JPEGs with native 120-pixel height under images/boards, so they do not
 depend on remote image loading in a Markdown viewer. A GitHub README link is
 also available from the live page.
 
@@ -112,5 +119,6 @@ Exchange uses an attached `.mltbx` as the download; without one it uses the ZIP
 release asset. Match the toolbox version to the release version and verify the
 upgrade from an older installed add-on. Keep the same File Exchange listing.
 
-The workflow has been prepared locally; a successful run on GitHub is still
-required to verify runner setup, permissions, and release attachment end to end.
+The first GitHub run was blocked before starting because of an account billing
+restriction. The local build is verified; runner setup, permissions, and release
+attachment still require a successful GitHub run after that restriction is resolved.

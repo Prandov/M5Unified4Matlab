@@ -41,7 +41,7 @@ jobs:
       - name: Build toolbox
         uses: matlab-actions/run-command@v3
         with:
-          command: buildToolbox
+          command: addpath(fullfile(pwd, 'tools', 'packaging')); buildToolbox
 
       - name: Verify installed folder layout
         shell: bash

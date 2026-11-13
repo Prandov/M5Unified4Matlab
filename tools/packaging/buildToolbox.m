@@ -1,8 +1,9 @@
 function outputFile = buildToolbox
 %BUILDTOOLBOX Build the release installer without installing or running it.
 % Created with GPT6A for the MATLAB Project and toolbox release workflow.
+% Open the MATLAB Project or add tools/packaging to the path before running.
 % Run from the repository root in MATLAB R2024a or later.
-root = fileparts(mfilename('fullpath'));
+root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 library = fullfile(root, 'M5Unified Add-On Library for Arduino');
 outputFolder = fullfile(root, 'release');
 if ~isfolder(outputFolder)

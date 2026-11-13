@@ -3,7 +3,7 @@ function opts = toolboxOptions(packageFolder)
 % Created with GPT6A for the MATLAB Project and toolbox release workflow.
 % Keep the identifier unchanged so new releases update the existing add-on.
 % packageFolder is the staging folder populated by buildToolbox.
-root = fileparts(mfilename('fullpath'));
+root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 opts = matlab.addons.toolbox.ToolboxOptions(packageFolder, ...
     'b313688e-800a-415f-b056-b41df863d83c');
 opts.ToolboxName = 'M5Unified Add-On Library for Arduino';
