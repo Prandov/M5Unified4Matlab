@@ -6,7 +6,7 @@
  * Banner Comments created: https://patorjk.com/software/taag BigMoney, Bright, Contrast
  * @copyright 2024, Eric Prandovszky prandov@yorku.ca, Greatlove Bariboloka greatlebari@gmail.com
  * Contact: prandov@yorku.ca, greatlebari@gmail.com
- * Version: 0.5.1
+ * Version: 0.5.2
  * Date: Nov 2, 2026
  * This .h file interacts with the M5Unified.m class in MATLAB.
  */
@@ -325,7 +325,7 @@ public:
         M5.Display.print("IO Server Version: ");
         M5.Display.println(BOARD_IO_VERSION);
         M5.Display.print("M5Unified Library Version: ");
-        M5.Display.println(" 0.5.1");
+        M5.Display.println(" 0.5.2");
         M5.Display.print("Libraries: ");
         M5.Display.println(LIBNAMES);
         const auto printFreePercent = [](unsigned long available, unsigned long total) { // GPT6A

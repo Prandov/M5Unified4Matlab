@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.5.1 - Project and toolbox packaging (release candidate)
+## 0.5.2 - Documentation and distribution refresh
+
+- Publish the documentation refresh under a distinct toolbox version so File Exchange and Add-Ons can identify it as an update.
+- Expand the live Getting Started page with Documentation, Preparation, and Connection Scripts sections, descriptions, a preparation-script link, a release label, and separated attribution.
+- Resize the four separate board images to 120 pixels tall and reorganize the README sections.
+- Consolidate build scripts, tests, developer notes, and documentation images under development; update project and packaging references.
+- Synchronize package, source labels, patch marker, and displayed library version to 0.5.2. No functional library or connection changes.
+
+## 0.5.1 - Project and toolbox packaging (published)
 
 - Name the MATLAB Project and its entry file M5Unified4Matlab to match the GitHub repository.
 - Restore the original MATLAB/M5Stack/York U/Arduino collage as the toolbox image.
@@ -17,7 +25,7 @@
 - Add a GitHub Actions workflow to build installers on demand and prepare a draft GitHub release on version-tag pushes.
 - Retain buildDocumentation as an optional development-only HTML preview using evalCode=false.
 - Keep preparation manual: opening the project and building the installer do not patch MathWorks files, download Arduino libraries, or connect to hardware.
-- Includes the preceding 0.5 candidate changes below. Hardware and File Exchange upgrade validation remain pending.
+- Includes the preceding 0.5 candidate changes below. The user confirmed installation, firmware rebuild/upload and device operation, plus working installation from File Exchange and Add-Ons Explorer. Broader board/peripheral coverage remains unverified.
 
 Future work: support the legacy Arduino library location before R2024a and verify the corresponding Utility patch. The current preparation requirement remains R2024a or later.
 

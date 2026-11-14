@@ -1,6 +1,6 @@
-# Version 0.5.1 release checklist
+# Version 0.5.1 validation record
 
-Status: release candidate, not yet published. VERSION and the main MATLAB/C++ headers identify 0.5.1. This release includes the 0.5 candidate work and the MATLAB Project/toolbox packaging transition. Do not publish v0.5.1 until the release checks below pass.
+Status: v0.5.1 was published. The user confirmed successful reinstall, firmware rebuild/upload and device operation, and installation through File Exchange and Add-Ons Explorer. The checklist below is retained as a historical test matrix; unchecked items were not individually established by that smoke test. Current development prepares v0.5.2 to distribute the subsequent documentation refresh under a distinct version, with no functional library changes.
 
 See [V05-AUDIT.md](V05-AUDIT.md) for the tag-to-candidate review, approval questions, and source comment markers.
 
@@ -21,7 +21,7 @@ See [V05-AUDIT.md](V05-AUDIT.md) for the tag-to-candidate review, approval quest
 - Earlier simulated port-name tests targeted a superseded Basic script; they do not validate the current numeric menu. Test the current scripts on macOS.
 - Eric reported successful patch execution and successful device use after recreating the Arduino, M5Unified, and NeoPixel objects. The initial connection/I/O failure remains unexplained.
 
-## Before publishing v0.5.1
+## Detailed v0.5.1 checks (historical checklist)
 
 - [ ] Commit the final scripts and metadata, and use that exact commit for testing.
 - [ ] On the Mac, record the commit, macOS version, MATLAB release, Arduino support-package version, ESP32 core version, M5Unified/M5GFX versions, and board model.

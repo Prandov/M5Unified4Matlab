@@ -25,7 +25,7 @@ from the development documentation tree. Regression checks live under
 `development/tests/`; documentation images live under `development/docs/images/boards/`.
 MATLAB-managed XML project definitions remain in `resources/project/`.
 
-The output is `release/M5Unified-0.5.1.mltbx` for the current `VERSION`.
+The output is `release/M5Unified-0.5.2.mltbx` for the current `VERSION`.
 `development/packaging/toolboxOptions.m` defines metadata and installation paths;
 `development/packaging/toolboxFileList.m`
 defines the explicit release file list. Update that list when adding files needed by users. It
@@ -109,7 +109,7 @@ licensing secret. A private repository would require a suitable licensing setup.
 After committing and pushing the workflow, run **Actions > Build MATLAB toolbox >
 Run workflow** to build a downloadable installer artifact without creating a
 release. To prepare a release, first commit all intended source and metadata,
-then create and push a tag matching VERSION, for example `v0.5.1`. The workflow
+then create and push a tag matching VERSION, for example `v0.5.2`. The workflow
 checks the tag against VERSION, builds the installer, and creates a **draft**
 GitHub release containing the `.mltbx` and its SHA-256 checksum. It does not
 publish the release automatically. An existing release with the same tag is
